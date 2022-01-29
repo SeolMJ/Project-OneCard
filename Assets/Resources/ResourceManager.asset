@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 988d0c41e6173b642bb76a738df086c4, type: 3}
+  m_Name: ResourceManager
+  m_EditorClassIdentifier: 
+  carderLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  npcs:
+  - {fileID: 11400000, guid: d917539a2b6afad40b3dd189e6c73e2d, type: 2}
+  - {fileID: 11400000, guid: 1fdaa64725382dd43a22366e28cb634a, type: 2}
+  - {fileID: 11400000, guid: 86fbecf1600f2a945a091ad978461874, type: 2}
+  systemLogColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  loadLogColor:
+    serializedVersion: 2
+    rgba: 4290968831
+  saveLogColor:
+    serializedVersion: 2
+    rgba: 4290968831
+  playerLogColor:
+    serializedVersion: 2
+    rgba: 4294959276
+  cardLogColor:
+    serializedVersion: 2
+    rgba: 4293316863
+  npcLogColor:
+    serializedVersion: 2
+    rgba: 4293263290
+  carderLogColor:
+    serializedVersion: 2
+    rgba: 4294949584
+  cardItemLogColor:
+    serializedVersion: 2
+    rgba: 4291887071
+  symbols:
+  - {fileID: 21300000, guid: becdc7e73c396b44ea4b65ecaf440933, type: 3}
+  - {fileID: 21300000, guid: 81671d9ac79355b4096f5f1fa9a03138, type: 3}
+  - {fileID: 21300000, guid: 2b38dc26be8d9324ca4916246549bae4, type: 3}
+  - {fileID: 21300000, guid: d637cacd2565b504d923aaea26b38a4d, type: 3}
+  - {fileID: 21300000, guid: 59b4fca0fed797e45a06cc7001d8a535, type: 3}
+  - {fileID: 21300000, guid: 92992f4b5d6015642b8e1fbfcce384d3, type: 3}
+  specialSymbols:
+  - {fileID: 21300000, guid: 135aa4d37d9a74043b6801e1553f2e09, type: 3}
+  - {fileID: 21300000, guid: d0c345e439cd308418f1bcc3d94a0ad0, type: 3}
+  - {fileID: 21300000, guid: 62f7eb9711644fa4a928d059196fb888, type: 3}
+  - {fileID: 21300000, guid: d41ccf50a5e1d74459a5f8bfa5d5a7fe, type: 3}
+  - {fileID: 21300000, guid: 42695e7aa7c409f429ca7cbaf45431db, type: 3}
+  - {fileID: 21300000, guid: 5658dfce90eab5448bda84a56dcbb93b, type: 3}
+  numbers:
+  - {fileID: 21300000, guid: 5e050be15e875b74fbaa1738f1ef60ab, type: 3}
+  - {fileID: 21300000, guid: 9ae7d61a83d5d8946bc3afd12b993a4c, type: 3}
+  - {fileID: 21300000, guid: dde3dba820c3e0043a075699152b46ce, type: 3}
+  - {fileID: 21300000, guid: 431fde45329278a44a0d11f3324979ae, type: 3}
+  - {fileID: 21300000, guid: 1ff2f5258fa8ff441b7faf43f11d8a59, type: 3}
+  - {fileID: 21300000, guid: 703e4fd8a13dc7a47afbda0e5d085778, type: 3}
+  - {fileID: 21300000, guid: 89f2ec77f0158ac489253cf5fb3a7989, type: 3}
+  - {fileID: 21300000, guid: f4563b8574473194b89aa9fb57b1326d, type: 3}
+  - {fileID: 21300000, guid: 3a41d927a24d7514a92b1f1f4e6c48b3, type: 3}
+  - {fileID: 21300000, guid: 75e95fc22be92ff49a5f23c87a164d24, type: 3}
+  - {fileID: 21300000, guid: f5b1bb2669fa25842ab8f1cd309c3747, type: 3}
+  - {fileID: 21300000, guid: 7f637f33d242d5548b18704d168fbc1e, type: 3}
+  - {fileID: 21300000, guid: bef250f00ee0b9b49b6e5bca8dcf5e6e, type: 3}
+  - {fileID: 21300000, guid: 7f5189fc9c1071243baebe9347c59303, type: 3}
+  - {fileID: 21300000, guid: 3b661aec1055e5144bbe7157c5811702, type: 3}
+  - {fileID: 21300000, guid: 057b95e0e721f8143a85feadb3fb7677, type: 3}
+  - {fileID: 21300000, guid: 80b678429fcc91c449b4c1b7dcee4435, type: 3}
+  - {fileID: 21300000, guid: 2d893b373a177914da22224d57a27e09, type: 3}
+  - {fileID: 21300000, guid: 2741b2a50189dbb4d943323df8455cac, type: 3}
+  - {fileID: 21300000, guid: ec459f0e1d49ada48b7dca6b40ce3f71, type: 3}
+  cardPrefab: {fileID: 8450503008384578623, guid: d25e2f05bc59bed4485fc7c63be546f3, type: 3}
+  attackCardPrefab: {fileID: 3345002194175058122, guid: bf1328ec8806d7145820557450209c8e, type: 3}
+  symbolPrefabs:
+  - {fileID: 8056868572185063407, guid: 06b1bf7de556cd34a8a27abe9670c17c, type: 3}
+  - {fileID: 4009042185936804601, guid: a8c32e8d99f9dbf4dae2ee385924d11d, type: 3}
+  - {fileID: 3760522810015110311, guid: 58fbb2ca1d1a85349b0918abf7e59ea3, type: 3}
+  - {fileID: 1912308297399071795, guid: edaa668084b38e04f93e9974bf5740cc, type: 3}
+  - {fileID: 1667621707088234803, guid: 844ba2c20ea5a754a85c49a7023946b8, type: 3}
+  - {fileID: 2490321634599071542, guid: 35aedd11617cada47b1bd477bb03ea74, type: 3}
+  - {fileID: 6758176561216019384, guid: 37802f0696b6c29459c34fdaef34ac07, type: 3}
+  - {fileID: 422720055449241112, guid: 27d19e3659c86db4bb454c6e8809606a, type: 3}
+  - {fileID: 4830218936203059133, guid: 58babb362babe9a4d90892c16bfee531, type: 3}
+  - {fileID: 7459342449169356837, guid: 86be93cc01e07c644a0fb4f296dba8b5, type: 3}
+  - {fileID: 8482592784913794262, guid: 44f391bf4b4a8f7479b0fcd4835aed5f, type: 3}
+  - {fileID: 3783531413594006143, guid: f29fe5435d5a0ee43af6b2f46aa8601b, type: 3}
+  - {fileID: 4065990555750311629, guid: 8be46acfd2e9e3641bdcd999097fb060, type: 3}
+  - {fileID: 2890231627149498091, guid: 7eb8b0269d4026b40b3f0a4435e678dc, type: 3}
+  - {fileID: 5506998907786353823, guid: f5e9feb812953f44484532389defb1a3, type: 3}
+  - {fileID: 1645781030086552991, guid: 0136e4a3ea17c304dbb0117a979fd11a, type: 3}
+  - {fileID: 3285483683527495358, guid: c801601703145aa48acea8abaa0770c1, type: 3}
+  previewDonePrefab: {fileID: 2026889276007275367, guid: 7908085534106104c97da1b9bb070601, type: 3}
+  previewPickPrefab: {fileID: 2026889276007275367, guid: a531a67802b24a641b5222b056d40fe0, type: 3}
+  donePrefab: {fileID: 3230200044802014723, guid: dcb3138afc19a3942a5b3757796ee64a, type: 3}
+  chatPrefab: {fileID: 0}
+  gameScenes: 01000000
