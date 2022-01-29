@@ -40,6 +40,9 @@ public class Player : Carder
     public CanvasGroup modeTextGroup;
     public Vector3 modeSpeed;
 
+    [Header("Debug")]
+    public List<Card> cards;
+
     // Global
     [HideInInspector] public bool carding;
     private Vector2 mousePos;
@@ -54,7 +57,6 @@ public class Player : Carder
     private Card selectedCard;
     private bool lazySelected;
     private int lazyturn;
-    [HideInInspector] public List<Card> cards;
     private Coroutine initCardRoutine;
 
     // Attack
