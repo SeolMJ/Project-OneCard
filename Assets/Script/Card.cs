@@ -52,7 +52,7 @@ public abstract class Card : MonoBehaviour
         float speed = CardManager.instance.cardSpeed;
         while (Vector2.Distance(homePos, thisRect.anchoredPosition) > 0.01f)
         {
-            MoveTo(Vector2.Lerp(thisRect.anchoredPosition, homePos, Time.deltaTime * speed));
+            MoveTo(Vector2.Lerp(thisRect.anchoredPosition, homePos, GameManager.deltaTime * speed));
             yield return waitForEnd;
         }
     }
@@ -72,7 +72,7 @@ public abstract class Card : MonoBehaviour
         if (!group) group = gameObject.AddComponent<CanvasGroup>();
         while (group.alpha > 0)
         {
-            group.alpha -= Time.deltaTime * CardManager.instance.cardFadeSpeed;
+            group.alpha -= GameManager.deltaTime * CardManager.instance.cardFadeSpeed;
             transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
             yield return waitForEnd;
         }
@@ -101,7 +101,7 @@ public abstract class Card : MonoBehaviour
         CanvasGroup group = target.GetComponent<CanvasGroup>();
         while (group.alpha <= 0.999f)
         {
-            group.alpha = Mathf.Lerp(group.alpha, 1, Time.deltaTime * CardManager.instance.cardFadeSpeed * 4f);
+            group.alpha = Mathf.Lerp(group.alpha, 1, GameManager.deltaTime * CardManager.instance.cardFadeSpeed * 4f);
             target.localScale = Vector3.one * Mathf.Lerp(1.25f, 1f, group.alpha);
             yield return waitForEnd;
         }
@@ -111,7 +111,7 @@ public abstract class Card : MonoBehaviour
         while (group.alpha > 0.001f)
         {
             yield return waitForEnd;
-            group.alpha = Mathf.Lerp(group.alpha, 0, Time.deltaTime * CardManager.instance.cardFadeSpeed * 2f);
+            group.alpha = Mathf.Lerp(group.alpha, 0, GameManager.deltaTime * CardManager.instance.cardFadeSpeed * 2f);
             target.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
 }
         Destroy(target.gameObject);

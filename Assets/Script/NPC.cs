@@ -48,7 +48,7 @@ public abstract class NPC : Carder
     IEnumerator OnOnTurn()
     {
         if (C.carders.Count == 0) yield break;
-        yield return new WaitForSeconds(Random.Range(0.25f, 0.5f));
+        yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
         using var _ = new Busy(3);
     Retry:
         Task<int> pushTask = Task.Run(() => Think());
@@ -69,7 +69,11 @@ public abstract class NPC : Carder
         else
         {
             Log("카드 제출 완료");
-            if (!C.Push(info.nowCards[push], true)) goto Retry;
+            if (!C.Push(info.nowCards[push], true))
+            {
+                if (C.playing) goto Retry;
+                else yield break;
+            }
             C.NewCardStack(C.PreviewCard(info.nowCards[push]));
             info.nowCards.RemoveAt(push);
             C.UpdateCarder(this, info.nowCards.Count);
@@ -111,11 +115,11 @@ public abstract class NPC : Carder
         List<int> remain = new();
         List<CardInfo> result = new();
         for (int i = 0; i < info.cards.Count; i++) remain.Add(i);
-        for (int i = 0; i < CardManager.instance.startCount; i++)
+        for (int i = 0; i < GameManager.Resource.defaultCardCount; i++)
         {
             if (remain.Count == 0)
             {
-                Error($"Not Enough Card Remaining: Total {info.cards.Count}, Need {CardManager.instance.startCount}");
+                Error($"Not Enough Card Remaining: Total {info.cards.Count}, Need {GameManager.Resource.defaultCardCount}");
                 return result;
             }
             int random = Random.Range(0, remain.Count);
@@ -134,7 +138,7 @@ public abstract class NPC : Carder
     public void ResetCards()
     {
         info.cards = new();
-        for (int i = 0; i < C.startCount; i++) info.cards.Add(CardUtils.RandomCard(false));
+        for (int i = 0; i < GameManager.Resource.defaultCardCount; i++) info.cards.Add(CardUtils.RandomCard(false));
     }
 
     public void Quit()

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 988d0c41e6173b642bb76a738df086c4, type: 3}
   m_Name: ResourceManager
   m_EditorClassIdentifier: 
+  defaultCardCount: 7
   carderLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -43,6 +44,9 @@ MonoBehaviour:
   cardItemLogColor:
     serializedVersion: 2
     rgba: 4291887071
+  sceneLogColor:
+    serializedVersion: 2
+    rgba: 4294966183
   symbols:
   - {fileID: 21300000, guid: becdc7e73c396b44ea4b65ecaf440933, type: 3}
   - {fileID: 21300000, guid: 81671d9ac79355b4096f5f1fa9a03138, type: 3}

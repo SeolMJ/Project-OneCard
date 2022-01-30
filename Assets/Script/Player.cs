@@ -14,6 +14,7 @@ public class Player : Carder
 
     [Header("Camera")]
     public new Camera camera;
+    public Camera uiCamera;
     public Transform cameraTransform;
     public Vector3 cameraOffset;
     public float cameraSpeed;
@@ -81,22 +82,27 @@ public class Player : Carder
         // Load
         transform.position = G.data.position.Get();
         rigidbody.velocity = G.data.velocity.Get();
+        uiCamera = gameManager.uiCamera;
 
         // Reset
         if (!camera) camera = G.GetComponent<Camera>();
         cards = new List<Card>();
         cardMode = 0;
         PlayerLog = new("Player", GameManager.Resource.playerLogColor);
-        //UpdateStatus(false);
     }
 
     void Update()
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(carding ? C.cardParent : C.attackCardParent, Input.mousePosition, camera, out mousePos);
+        if (GameManager.timeScale == 0) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(carding ? C.cardParent : C.attackCardParent, Input.mousePosition, uiCamera, out mousePos);
+        mousePos += (Vector2)transform.position;
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (!carding) Party(4);
         }
+
         if (carding) // Cards
         {
             UpdateMode();
@@ -122,7 +128,7 @@ public class Player : Carder
 
     void LateUpdate()
     {
-        Physics2D.Simulate(Time.deltaTime);
+        Physics2D.Simulate(GameManager.deltaTime);
 
         UpdateCamera();
     }
@@ -153,11 +159,12 @@ public class Player : Carder
     IEnumerator InitCard()
     {
         List<CardInfo> newCards = GameManager.GetRandomCards();
-        for (int i = 0; i < C.startCount; i++)
+        for (int i = 0; i < GameManager.Resource.defaultCardCount; i++)
         {
             AddCard(newCards[i]);
-            yield return new WaitForSeconds(0.05f);
+            yield return new GameManager.WaitForScaledSeconds().Wait(0.05f);
         }
+        C.UpdateCarder(this, cards.Count);
     }
 
     public void InitCardForce()
@@ -166,6 +173,7 @@ public class Player : Carder
         {
             AddCard(GameManager.GetCard(G.data.nowCards[i]));
         }
+        C.UpdateCarder(this, cards.Count);
     }
 
     public void UpdateStatus(bool status, bool fromData = false)
@@ -197,7 +205,7 @@ public class Player : Carder
         velocity = keyInput == Vector2.zero
             ? Vector2.zero
             : Vector2.SmoothDamp(velocity, keyInput.normalized, ref velocityVel, moveSmooth);
-        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * Time.deltaTime * velocity.normalized;
+        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * velocity.normalized;
         else velocityVel = Vector2.zero;
     }
 
@@ -206,7 +214,7 @@ public class Player : Carder
         if (attackCards.Count == 0) return;
         attackCardOpened = mousePos.y <= -320f;
         float bottom = -C.attackCardParent.sizeDelta.y / 2f + 32f;
-        float deltaTime = Time.deltaTime * C.cardSpeed;
+        float deltaTime = GameManager.deltaTime * C.cardSpeed;
         for (int i = 0; i < attackCards.Count; i++)
         {
             float index = attackCards.Count == 1 ? 0f : ((float)i / (attackCards.Count - 1) - 0.5f);
@@ -262,8 +270,8 @@ public class Player : Carder
         if (Input.GetMouseButton(0) && selectedCard)
         {
             selected = true;
-            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, Time.deltaTime * C.cardSpeed));
-            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, Time.deltaTime * C.cardSpeed));
+            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, GameManager.deltaTime * C.cardSpeed));
+            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * C.cardSpeed));
             if (C.previewCard && C.carders.Contains(this) && Vector2.Distance(C.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (C.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
                 if (!cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(true);
@@ -343,7 +351,7 @@ public class Player : Carder
             C.Next(lazyturn == GetTurn());
             lazySelected = false;
         }
-        multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), Time.deltaTime * 10f);
+        multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), GameManager.deltaTime * 10f);
     }
 
     public void UpdateSkip()
@@ -372,7 +380,7 @@ public class Player : Carder
         float width = cards.Count * 400f + (cards.Count - 1) * 25f;
         float halfWidth = width / 2f;
         float bottom = -C.cardParent.sizeDelta.y / 2f;
-        float deltaTime = Time.deltaTime * C.cardSpeed;
+        float deltaTime = GameManager.deltaTime * C.cardSpeed;
         float mouseHeight = cardMode switch
         {
             0 => (Input.mousePosition.y / Screen.height * 4f - 0.25f) * (selected ? 0.1f : 1f),
@@ -391,14 +399,13 @@ public class Player : Carder
         };
         float minDist = Mathf.Infinity;
         int closest = 0;
-        Vector2 mouseWorldPos = camera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
         for (int i = 0; i < count; i++)
         {
             if (selected && cards[i] == selectedCard) continue;
             float index = count == 1 ? 0f : ((float)i / (count - 1) - 0.5f) * mul;
             float pos = 200f + i * 425f - mousePos.x / canvasWidth * width;
             float offset = (pos - halfWidth - mousePos.x) / canvasWidth;
-            float posX = Mathf.Abs(cards[i].transform.position.x - mouseWorldPos.x);
+            float posX = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - mousePos.x);
             float perlinPlusIndex = index * 10f + Time.time * 0.2f;
             float perlinMinusIndex = index * 10f - Time.time * 0.2f;
             if (posX < minDist)
@@ -433,12 +440,12 @@ public class Player : Carder
     {
         for (int i = 0; i < modeRects.Length; i++)
         {
-            modeRects[i].localScale = Vector3.Lerp(modeRects[i].localScale, cardMode == i ? Vector3.one : new Vector3(0.75f, 0.75f, 1f), modeSpeed.z * Time.deltaTime);
+            modeRects[i].localScale = Vector3.Lerp(modeRects[i].localScale, cardMode == i ? Vector3.one : new Vector3(0.75f, 0.75f, 1f), modeSpeed.z * GameManager.deltaTime);
         }
         if (modeTextGroup.alpha == 0) return;
         Vector2 pos = modeRects[cardMode].anchoredPosition + Vector2.right * 96f;
-        modeTextGroup.alpha = Mathf.MoveTowards(modeTextGroup.alpha, 0, Time.deltaTime * modeSpeed.x);
-        modeTextRect.anchoredPosition = Vector2.Lerp(modeTextRect.anchoredPosition, pos, Time.deltaTime * modeSpeed.y);
+        modeTextGroup.alpha = Mathf.MoveTowards(modeTextGroup.alpha, 0, GameManager.deltaTime * modeSpeed.x);
+        modeTextRect.anchoredPosition = Vector2.Lerp(modeTextRect.anchoredPosition, pos, GameManager.deltaTime * modeSpeed.y);
     }
 
     // Inherit Methods

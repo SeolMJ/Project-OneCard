@@ -19,7 +19,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Datas")]
     public SaveData data;
-    
+
+    [Header("References")]
+    public ResourceManager resource;
+
+    [Header("UI")]
+    public Camera uiCamera;
 
     [Header("Loading")]
     public RectTransform busyRect;
@@ -29,14 +34,13 @@ public class GameManager : MonoBehaviour
     [Space]
     public int busyWorks;
 
-    private static ResourceManager resource;
 
     public static ResourceManager Resource
     {
         get
         {
-            if (!resource) resource = Resources.Load<ResourceManager>("ResourceManager");
-            return resource;
+            //if (!resource) resource = Resources.Load<ResourceManager>("ResourceManager");
+            return instance.resource;
         }
     }
 
@@ -51,6 +55,11 @@ public class GameManager : MonoBehaviour
     // NPCs
     [HideInInspector] public List<NPC> activeNPCs;
 
+    // Statics
+    public static float timeScale = 1f;
+    public static float deltaTime => Time.deltaTime * timeScale;
+    public static double totalTime;
+
     void Awake()
     {
         if (instance == null)
@@ -63,6 +72,7 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+        totalTime = 0;
         //consoleThread = new Thread();
     }
 
@@ -73,9 +83,10 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        totalTime += deltaTime;
+
         // Save
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.S)) Save();
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L) && data != null) SceneLoader.LoadLevel(2);
 
         // Loading
         bool isBusy = busyWorks > 0;
@@ -118,9 +129,10 @@ public class GameManager : MonoBehaviour
         data.nowStack = 0;
         data.position = new(0, 0);
         data.entities = new();
-        for (int i = 0; i < CardManager.instance.startCount; i++) data.cards.Add(CardUtils.RandomCard());
+        for (int i = 0; i < Resource.defaultCardCount; i++) data.cards.Add(CardUtils.RandomCard());
         for (int i = 0; i < Resource.npcs.Count; i++) data.entities.Add(new());
         loaded = true;
+        SceneLoader.LoadLevel(2);
     }
 
     // Save & Load
@@ -177,7 +189,7 @@ public class GameManager : MonoBehaviour
                 if (npcs.Count <= i) continue;
                 if (data.entities[i].cards.Count == 0) // Random Card equip
                 {
-                    for (int j = 0; j < CardManager.instance.startCount; j++) data.entities[i].cards.Add(CardUtils.RandomCard());
+                    for (int j = 0; j < Resource.defaultCardCount; j++) data.entities[i].cards.Add(CardUtils.RandomCard());
                 }
                 npcs[i].cards = new(data.entities[i].cards);
                 npcs[i].nowCards = IndexToNowCards(i);
@@ -195,6 +207,7 @@ public class GameManager : MonoBehaviour
         }
         Log(LoadLog, "Success", 3);
         loaded = true;
+        SceneLoader.LoadLevel(2);
     }
 
     public async void Save()
@@ -311,7 +324,7 @@ public class GameManager : MonoBehaviour
         List<int> remain = new();
         List<CardInfo> result = new();
         for (int i = 0; i < instance.data.cards.Count; i++) remain.Add(i);
-        for (int i = 0; i < CardManager.instance.startCount; i++)
+        for (int i = 0; i < Resource.defaultCardCount; i++)
         {
             int random = UnityEngine.Random.Range(0, remain.Count);
             result.Add(GetCard(remain[random]));
@@ -429,6 +442,27 @@ public class GameManager : MonoBehaviour
     public static string ToHtmlStringRGBA(Color32 color)
     {
         return string.Format("{0:X2}{1:X2}{2:X2}{3:X2}", color.r, color.g, color.b, color.a);
+    }
+
+    public class WaitForScaledSeconds : CustomYieldInstruction
+    {
+
+        public WaitForScaledSeconds Wait(float seconds)
+        {
+            time = totalTime + seconds;
+            return this;
+        }
+
+        public override bool keepWaiting
+        {
+            get
+            {
+                return totalTime < time;
+            }
+        }
+
+        public double time;
+
     }
 
 }

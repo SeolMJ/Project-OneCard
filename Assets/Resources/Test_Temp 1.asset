@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4105dbdf02c9eef48be4658d024d2c42, type: 3}
-  m_Name: Test3
+  m_Name: Test_Temp 1
   m_EditorClassIdentifier: 
   name: Test3
   cards:
@@ -41,8 +41,8 @@ MonoBehaviour:
     num: 64
   - type: 2
     num: 2048
-  sensitive: 0.2
-  careful: 0.2
-  quick: 0.9
+  sensitive: 0.41128987
+  careful: 0.560649
+  quick: 0.035987973
   scene: 1
   position: {x: 0.76, y: -1.71}

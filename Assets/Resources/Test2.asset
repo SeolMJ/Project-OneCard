@@ -14,33 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Test2
   cards:
+  - type: 8
+    num: 4
   - type: 2
+    num: 1024
+  - type: 1
+    num: 512
+  - type: 15
+    num: 16384
+  - type: 4
+    num: 8
+  - type: 1
+    num: 32
+  - type: 4
+    num: 4
+  nowCards:
+  - type: 4
+    num: 4
+  - type: 4
+    num: 8
+  - type: 8
+    num: 4
+  - type: 8
     num: 16
   - type: 2
-    num: 256
-  - type: 8
-    num: 2
-  - type: 4
-    num: 256
-  - type: 8
     num: 8
-  - type: 4
-    num: 4096
-  - type: 2
-    num: 256
-  nowCards:
-  - type: 8
-    num: 2
-  - type: 4
-    num: 4096
-  - type: 4
-    num: 256
-  - type: 2
-    num: 256
-  - type: 2
-    num: 256
-  sensitive: 0.5
-  careful: 0.5
-  quick: 0.5
+  sensitive: 0.8
+  careful: 0.4
+  quick: 0.6
   scene: 1
   position: {x: -1.91, y: -0.65}

@@ -6,6 +6,9 @@ using UnityEngine;
 public class ResourceManager : ScriptableObject
 {
 
+    [Header("Cards")]
+    public int defaultCardCount;
+
     [Header("Carders & NPCs")]
     public LayerMask carderLayer;
     [Space]
@@ -20,6 +23,7 @@ public class ResourceManager : ScriptableObject
     public Color32 npcLogColor;
     public Color32 carderLogColor;
     public Color32 cardItemLogColor;
+    public Color32 sceneLogColor;
 
     [Header("Resources")]
     public Sprite[] symbols;

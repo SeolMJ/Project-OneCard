@@ -22,5 +22,11 @@ public class NPCInfo : ScriptableObject
     public int scene;
     public Vector2 position;
 
+    public void RandomizeBehaviors()
+    {
+        sensitive = Random.Range(0f, 1f);
+        careful = Random.Range(0f, 1f);
+        quick = Random.Range(0f, 1f);
+    }
 
 }

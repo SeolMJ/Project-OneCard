@@ -23,6 +23,13 @@ public class CardEditor : Editor
         {
             CardManager.instance?.Resume();
         }
+
+        GUILayout.Space(8);
+
+        if (GUILayout.Button("Quit"))
+        {
+            CardManager.instance?.Quit(card);
+        }
     }
 }
 
@@ -69,6 +76,25 @@ public class ChatManagerEditor : Editor
         {
             if (!ChatManager.instance) ChatManager.instance = manager;
             ChatManager.Layout();
+        }
+    }
+}
+
+[CustomEditor(typeof(NPCInfo)), CanEditMultipleObjects]
+public class NPCInfoEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        GUILayout.Space(16);
+
+        if (GUILayout.Button("Randomize Behavior"))
+        {
+            foreach (Object targetObject in serializedObject.targetObjects)
+            {
+                (targetObject as NPCInfo).RandomizeBehaviors();
+            }
         }
     }
 }

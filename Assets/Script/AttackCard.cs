@@ -25,7 +25,7 @@ public class AttackCard : MonoBehaviour
         running = true;
         while (endSize.x - thisRect.sizeDelta.x > 0.01f)
         {
-            thisRect.sizeDelta = Vector3.Lerp(thisRect.sizeDelta, endSize, Time.deltaTime * 10f);
+            thisRect.sizeDelta = Vector3.Lerp(thisRect.sizeDelta, endSize, GameManager.deltaTime * 10f);
             yield return new WaitForEndOfFrame();
         }
         thisRect.sizeDelta = endSize;

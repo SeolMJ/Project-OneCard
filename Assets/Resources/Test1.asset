@@ -13,8 +13,30 @@ MonoBehaviour:
   m_Name: Test1
   m_EditorClassIdentifier: 
   name: Test1
-  npc: {fileID: 0}
-  cards: []
-  sensitive: 0.5
-  careful: 0.5
-  quick: 0.5
+  cards:
+  - type: 1
+    num: 64
+  - type: 2
+    num: 32
+  - type: 1
+    num: 512
+  - type: 2
+    num: 1024
+  - type: 1
+    num: 256
+  - type: 1
+    num: 32
+  - type: 2
+    num: 8
+  nowCards:
+  - type: 2
+    num: 8
+  - type: 2
+    num: 1024
+  - type: 1
+    num: 512
+  sensitive: 0.6
+  careful: 0.9
+  quick: 0.3
+  scene: 1
+  position: {x: 1.69, y: 0}

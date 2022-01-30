@@ -14,7 +14,6 @@ public class CardManager : MonoBehaviour
     public static CardManager instance;
 
     [Header("Settings")]
-    public int startCount;
     public float cardSpeed;
     public float cardFadeSpeed;
     public float symbolDelay;
@@ -130,7 +129,7 @@ public class CardManager : MonoBehaviour
     void Update()
     {
         if (carders.Count == 0) return;
-        for (int i = 0; i < carders.Count; i++) carderRects[i].localScale = Vector3.Lerp(carderRects[i].localScale, i == turn ? Vector3.one * 1.5f : Vector3.one, Time.deltaTime * carderSpeed);
+        for (int i = 0; i < carders.Count; i++) carderRects[i].localScale = Vector3.Lerp(carderRects[i].localScale, i == turn ? Vector3.one * 1.5f : Vector3.one, GameManager.deltaTime * carderSpeed);
     }
 
     // Core
@@ -181,7 +180,7 @@ public class CardManager : MonoBehaviour
         cardSystemGroup.gameObject.SetActive(true);
         while (cardGroup.alpha < 0.99f)
         {
-            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 1, Time.deltaTime * 10f);
+            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 1, GameManager.deltaTime * 10f);
             cardSystemGroup.alpha = cardGroup.alpha;
             yield return null;
         }
@@ -339,7 +338,7 @@ public class CardManager : MonoBehaviour
         cardGroup.alpha = 1;
         while (cardGroup.alpha > 0.01f)
         {
-            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 0, Time.deltaTime * 10f);
+            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 0, GameManager.deltaTime * 10f);
             cardSystemGroup.alpha = cardGroup.alpha;
             yield return null;
         }

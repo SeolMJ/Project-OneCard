@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using SeolMJ;
 
 public class SceneLoader : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class SceneLoader : MonoBehaviour
     public Image maskImage;
 
     // Statics
-    private static bool loading;
+    //private static bool loading;
     private static List<int> activeScenes = new();
     private static List<int> sceneQueue = new();
     private static GameObject prefab;
@@ -42,7 +43,7 @@ public class SceneLoader : MonoBehaviour
     {
         if (instance == null)
         {
-            sceneQueue = new(scenes);
+            sceneQueue = scenes;
             if (!prefab) prefab = Resources.Load<GameObject>("SceneLoader");
             Instantiate(prefab);
         }
@@ -76,7 +77,11 @@ public class SceneLoader : MonoBehaviour
 
     IEnumerator DoLoad()
     {
-        loading = true;
+        //loading = true;
+
+        Log($"Loading {sceneQueue.Count} Scenes ({activeScenes.Count} Active)", 1);
+
+        GameManager.timeScale = 0;
 
         float fill = 0f;
         while (fill != 1f)
@@ -86,20 +91,31 @@ public class SceneLoader : MonoBehaviour
             yield return null;
         }
 
+        for (int i = 0; i < activeScenes.Count; i++)
+        {
+            if (!sceneQueue.Contains(activeScenes[i])) continue;
+
+            sceneQueue.Remove(activeScenes[i]);
+            activeScenes.RemoveAt(i);
+            i--;
+        }
+
+        int[] oldActiveScenes = activeScenes.ToArray();
+
         foreach (int scene in sceneQueue)
         {
+            Log($"Loading Scene {scene}", 2);
             AsyncOperation operation = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
+            activeScenes.Add(scene);
             yield return new WaitUntil(() => operation.isDone);
         }
 
-        foreach (int scene in activeScenes)
+        foreach (int scene in oldActiveScenes)
         {
-            if (sceneQueue.Contains(scene))
-            {
-                sceneQueue.Remove(scene);
-                continue;
-            }
-            yield return SceneManager.UnloadSceneAsync(scene);
+            Log($"Unloading Scene {scene}", 2);
+            AsyncOperation operation = SceneManager.UnloadSceneAsync(scene);
+            activeScenes.Remove(scene);
+            yield return new WaitUntil(() => operation.isDone);
         }
 
         yield return new WaitForSecondsRealtime(0.1f);
@@ -111,9 +127,24 @@ public class SceneLoader : MonoBehaviour
             yield return null;
         }
 
-        loading = false;
+        //loading = false;
+
+        GameManager.timeScale = 1f;
+
+        Log("Scene Loaded", 3);
 
         Destroy(gameObject);
     }
+
+    #region Logging
+
+    static LogPreset logPreset => new("Scene", GameManager.Resource.sceneLogColor, 64);
+
+    public static void Log(string content, byte state = 0)
+    {
+        Log4u.Log(logPreset, content, state);
+    }
+
+    #endregion
 
 }

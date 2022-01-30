@@ -22,7 +22,7 @@ public class SymbolAnimator : MonoBehaviour
         running = true;
         while (endSize - transform.localScale.x > 0.001f)
         {
-            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one * endSize, Time.deltaTime * 10f);
+            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one * endSize, GameManager.deltaTime * 10f);
             yield return new WaitForEndOfFrame();
         }
         transform.localScale = Vector3.one * endSize;

@@ -23,7 +23,7 @@ public class PopAnimator : MonoBehaviour
         while (progress < 1f)
         {
             transform.localScale = Vector3.one * curve.Evaluate(progress);
-            progress += Time.deltaTime * speed;
+            progress += GameManager.deltaTime * speed;
             yield return null;
         }
         transform.localScale = Vector3.one * curve.Evaluate(1);
