@@ -34,24 +34,14 @@ namespace SeolMJ
         public string prefix;
         public string hex;
         public string prefixHex;
-        public string gradientLine;
-        public int width;
+        public readonly string gradientLine;
 
-        public LogPreset(string prefix, Color32 color, int padding = 0)
+        public LogPreset(string prefix, Color32 color)
         {
             this.prefix = prefix;
             this.hex = string.Format("{0:X2}{1:X2}{2:X2}{3:X2}", color.r, color.g, color.b, color.a);
             this.prefixHex = hex[..6] + string.Format("{0:X2}", color.a / 2);
-            this.width = padding;
-            if (padding != 0) gradientLine = string.Format(gradient, hex[..6]);
-            else gradientLine = null;
-        }
-
-        public void Line(int padding)
-        {
-            this.width = padding;
-            if (padding != 0) gradientLine = string.Format(gradient, hex[..6]);
-            else gradientLine = null;
+            gradientLine = string.Format(gradient, hex[..6]);
         }
 
         public string Get(string content, byte state = 0)

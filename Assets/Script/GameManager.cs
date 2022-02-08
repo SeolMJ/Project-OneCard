@@ -107,8 +107,8 @@ public class GameManager : MonoBehaviour
 
         // Setup Logs
         SystemLog = new("System", Resource.systemLogColor);
-        SaveLog = new("Save", Resource.saveLogColor, 64);
-        LoadLog = new("Load", Resource.loadLogColor, 64);
+        SaveLog = new("Save", Resource.saveLogColor);
+        LoadLog = new("Load", Resource.loadLogColor);
 
         // Load
         Log(SystemLog, "Initializing");

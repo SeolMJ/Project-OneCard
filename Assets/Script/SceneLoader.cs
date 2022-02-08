@@ -138,11 +138,12 @@ public class SceneLoader : MonoBehaviour
 
     #region Logging
 
-    static LogPreset logPreset => new("Scene", GameManager.Resource.sceneLogColor, 64);
+    public static LogPreset? logPreset;
 
     public static void Log(string content, byte state = 0)
     {
-        Log4u.Log(logPreset, content, state);
+        logPreset ??= new("Scene", GameManager.Resource.sceneLogColor);
+        Log4u.Log(logPreset.Value, content, state);
     }
 
     #endregion

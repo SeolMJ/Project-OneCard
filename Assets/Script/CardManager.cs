@@ -62,12 +62,10 @@ public class CardManager : MonoBehaviour
 
     private float angleOffset;
     private bool readying;
-    private LogPreset cardLog;
 
     void Awake()
     {
         instance = this;
-        cardLog = new("Card", GameManager.Resource.cardLogColor);
     }
 
     IEnumerator Start()
@@ -75,7 +73,6 @@ public class CardManager : MonoBehaviour
         SaveData data = GameManager.instance.data;
         if (data.nowCarding)
         {
-            cardLog.Line(64);
             Log("Game Resuming", 1);
             cardParent.gameObject.SetActive(true);
             cardSystemGroup.gameObject.SetActive(true);
@@ -434,15 +431,23 @@ public class CardManager : MonoBehaviour
         return true;
     }
 
+    #region Logging
+
+    public static LogPreset? logPreset;
+
     public static void Log(string content, byte state = 0)
     {
-        Log4u.Log(instance.cardLog, content, state);
+        logPreset ??= new("Card", GameManager.Resource.cardLogColor);
+        Log4u.Log(logPreset.Value, content, state);
     }
 
     public static void Error(string content, byte state = 0)
     {
-        Log4u.Error(instance.cardLog, content, state);
+        logPreset ??= new("Card", GameManager.Resource.cardLogColor);
+        Log4u.Error(logPreset.Value, content, state);
     }
+
+    #endregion
 
 }
 

@@ -47,7 +47,6 @@ public class Player : Carder
     // Global
     [HideInInspector] public bool carding;
     private Vector2 mousePos;
-    private LogPreset PlayerLog;
 
     // Camera
     private Vector3 cameraVel;
@@ -88,7 +87,6 @@ public class Player : Carder
         if (!camera) camera = G.GetComponent<Camera>();
         cards = new List<Card>();
         cardMode = 0;
-        PlayerLog = new("Player", GameManager.Resource.playerLogColor);
     }
 
     void Update()
@@ -481,9 +479,16 @@ public class Player : Carder
         C.Ready(() => UpdateStatus(true, resume));
     }
 
-    public void Log(string content)
+    #region Logging
+
+    public static new LogPreset? logPreset;
+
+    public static new void Log(string content, byte state = 0)
     {
-        Log4u.Log(PlayerLog, content);
+        logPreset ??= new("Player", GameManager.Resource.playerLogColor);
+        Log4u.Log(logPreset.Value, content, state);
     }
+
+    #endregion
 
 }
