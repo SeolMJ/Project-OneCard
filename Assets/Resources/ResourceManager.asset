@@ -83,7 +83,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 2741b2a50189dbb4d943323df8455cac, type: 3}
   - {fileID: 21300000, guid: ec459f0e1d49ada48b7dca6b40ce3f71, type: 3}
   cardPrefab: {fileID: 8450503008384578623, guid: d25e2f05bc59bed4485fc7c63be546f3, type: 3}
-  attackCardPrefab: {fileID: 3345002194175058122, guid: bf1328ec8806d7145820557450209c8e, type: 3}
   symbolPrefabs:
   - {fileID: 8056868572185063407, guid: 06b1bf7de556cd34a8a27abe9670c17c, type: 3}
   - {fileID: 4009042185936804601, guid: a8c32e8d99f9dbf4dae2ee385924d11d, type: 3}
@@ -102,8 +101,7 @@ MonoBehaviour:
   - {fileID: 5506998907786353823, guid: f5e9feb812953f44484532389defb1a3, type: 3}
   - {fileID: 1645781030086552991, guid: 0136e4a3ea17c304dbb0117a979fd11a, type: 3}
   - {fileID: 3285483683527495358, guid: c801601703145aa48acea8abaa0770c1, type: 3}
-  previewDonePrefab: {fileID: 2026889276007275367, guid: 7908085534106104c97da1b9bb070601, type: 3}
-  previewPickPrefab: {fileID: 2026889276007275367, guid: a531a67802b24a641b5222b056d40fe0, type: 3}
-  donePrefab: {fileID: 3230200044802014723, guid: dcb3138afc19a3942a5b3757796ee64a, type: 3}
-  chatPrefab: {fileID: 0}
+  doneSprite: {fileID: 21300000, guid: 92714fe23944dd2418366f19a52677b3, type: 3}
+  doneCardSprite: {fileID: 21300000, guid: cba311900bb80f94e8965ade38009f03, type: 3}
+  pickCardSprite: {fileID: 21300000, guid: 1121094cb6e2fe84b8f605171b8271c9, type: 3}
   gameScenes: 01000000

@@ -14,7 +14,6 @@ public class Player : Carder
 
     [Header("Camera")]
     public new Camera camera;
-    public Camera uiCamera;
     public Transform cameraTransform;
     public Vector3 cameraOffset;
     public float cameraSpeed;
@@ -29,9 +28,6 @@ public class Player : Carder
     public new Rigidbody2D rigidbody;
     public float moveSpeed;
     public float moveSmooth;
-
-    [Header("Attack")]
-    public List<AttackCard> attackCards;
 
     [Header("Mode")]
     public RectTransform[] modeRects;
@@ -81,19 +77,21 @@ public class Player : Carder
         // Load
         transform.position = G.data.position.Get();
         rigidbody.velocity = G.data.velocity.Get();
-        uiCamera = gameManager.uiCamera;
 
         // Reset
         if (!camera) camera = G.GetComponent<Camera>();
         cards = new List<Card>();
         cardMode = 0;
+
+        // Else
+        Canvas.GetDefaultCanvasMaterial().enableInstancing = true;
     }
 
     void Update()
     {
         if (GameManager.timeScale == 0) return;
 
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(carding ? C.cardParent : C.attackCardParent, Input.mousePosition, uiCamera, out mousePos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(carding ? cardManager.cardParent : cardManager.attackCardParent, Input.mousePosition, camera, out mousePos);
         mousePos += (Vector2)transform.position;
 
         if (Input.GetKeyDown(KeyCode.Q))
@@ -120,7 +118,7 @@ public class Player : Carder
         else // Movement
         {
             UpdateMovement();
-            UpdateAttackCard();
+            // UpdateAttackCard();
         }
     }
 
@@ -133,10 +131,9 @@ public class Player : Carder
 
     public void AddCard(CardInfo card)
     {
-        GameObject obj = Instantiate(GameManager.Resource.cardPrefab, C.cardParent);
-        Card newCard = obj.GetComponent<Card>();
+        Card newCard = cardManager.GetCard(card, cardManager.cardParent);
         newCard.Init(card);
-        newCard.MoveTo(Vector2.down * (C.cardParent.sizeDelta.y / 2f + 440f));
+        newCard.MoveTo(Vector2.down * (cardManager.cardParent.sizeDelta.y / 2f + 440f));
         cards.Add(newCard);
         cardHilight.SetAsLastSibling();
     }
@@ -150,7 +147,7 @@ public class Player : Carder
     public void ClearCard()
     {
         if (cards.Count == 0) return;
-        foreach (Card card in cards) card.Destroy();
+        foreach (Card card in cards) card.Kill();
         cards.Clear();
     }
 
@@ -162,7 +159,7 @@ public class Player : Carder
             AddCard(newCards[i]);
             yield return new GameManager.WaitForScaledSeconds().Wait(0.05f);
         }
-        C.UpdateCarder(this, cards.Count);
+        cardManager.UpdateCarder(this, cards.Count);
     }
 
     public void InitCardForce()
@@ -171,7 +168,7 @@ public class Player : Carder
         {
             AddCard(GameManager.GetCard(G.data.nowCards[i]));
         }
-        C.UpdateCarder(this, cards.Count);
+        cardManager.UpdateCarder(this, cards.Count);
     }
 
     public void UpdateStatus(bool status, bool fromData = false)
@@ -180,10 +177,10 @@ public class Player : Carder
         ChangeSet(carding);
         if (carding)
         {
-            C.Join(this);
+            cardManager.Join(this);
 
-            if (fromData) C.Resume();
-            else C.Play();
+            if (fromData) cardManager.Resume();
+            else cardManager.Play();
 
             if (initCardRoutine != null) StopCoroutine(initCardRoutine);
 
@@ -207,12 +204,13 @@ public class Player : Carder
         else velocityVel = Vector2.zero;
     }
 
+    /*
     public void UpdateAttackCard()
     {
         if (attackCards.Count == 0) return;
         attackCardOpened = mousePos.y <= -320f;
-        float bottom = -C.attackCardParent.sizeDelta.y / 2f + 32f;
-        float deltaTime = GameManager.deltaTime * C.cardSpeed;
+        float bottom = -cardManager.attackCardParent.sizeDelta.y / 2f + 32f;
+        float deltaTime = GameManager.deltaTime * cardManager.cardSpeed;
         for (int i = 0; i < attackCards.Count; i++)
         {
             float index = attackCards.Count == 1 ? 0f : ((float)i / (attackCards.Count - 1) - 0.5f);
@@ -228,6 +226,7 @@ public class Player : Carder
                 , Vector3.forward), deltaTime);
         }
     }
+    */
 
     public void UpdateCamera()
     {
@@ -245,15 +244,12 @@ public class Player : Carder
                 case 0:
                     selected = false;
                     cardHilight.gameObject.SetActive(true);
-                    C.chatManager.Mode(false);
                     break;
                 case 1:
-                    C.chatManager.Mode(true);
                     break;
                 case 2:
                     selected = false;
                     cardHilight.gameObject.SetActive(true);
-                    C.chatManager.Mode(false);
                     break;
             }
             modeText.text = modeContents[cardMode];
@@ -268,13 +264,13 @@ public class Player : Carder
         if (Input.GetMouseButton(0) && selectedCard)
         {
             selected = true;
-            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, GameManager.deltaTime * C.cardSpeed));
-            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * C.cardSpeed));
-            if (C.previewCard && C.carders.Contains(this) && Vector2.Distance(C.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (C.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
+            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, GameManager.deltaTime * cardManager.cardSpeed));
+            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
+            if (cardManager.previewCard && cardManager.carders.Contains(this) && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
                 if (!cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(true);
-                cardHilight.position = C.previewCard.transform.position;
-                cardHilight.rotation = C.previewCard.transform.rotation;
+                cardHilight.position = cardManager.previewCard.transform.position;
+                cardHilight.rotation = cardManager.previewCard.transform.rotation;
             }
             else if(cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(false);
         }
@@ -282,44 +278,46 @@ public class Player : Carder
         {
             cardHilight.gameObject.SetActive(true);
             Vector2 cardPos = selectedCard.thisRect.anchoredPosition;
-            if (C.previewCard && Vector2.Distance(C.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist && cardMode == 0)
+            if (cardManager.previewCard && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist && cardMode == 0)
             {
-                if (C.carders.Contains(this) && (C.carders[GetTurn()] == this || lazySelected))
+                if (cardManager.carders.Contains(this) && (cardManager.carders[GetTurn()] == this || lazySelected))
                 {
                     bool pushed;
                     if (Input.GetKey(KeyCode.Space))
                     {
-                        if (Match(selectedCard.num, C.lastCard.num) || !lazySelected)
+                        if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
                         {
-                            pushed = C.Push(new CardInfo(selectedCard.type, selectedCard.num), true);
+                            pushed = cardManager.Push(new CardInfo(selectedCard.type, selectedCard.num), true);
                             if (!lazySelected) lazyturn = GetTurn();
                             if (pushed)
                             {
                                 lazySelected = true;
-                                C.UpdateCarder(this, cards.Count);
+                                cardManager.UpdateCarder(this, cards.Count);
+                                cardManager.PushCarder(this);
                             }
                         }
                         else pushed = false;
                     }
-                    else pushed = C.Push(new CardInfo(selectedCard.type, selectedCard.num));
+                    else pushed = cardManager.Push(new CardInfo(selectedCard.type, selectedCard.num));
                     if (pushed)
                     {
                         cards.Remove(selectedCard);
-                        selectedCard.transform.SetParent(C.previewParent);
-                        selectedCard.GoHome();
-                        C.NewCardStack(selectedCard);
+                        selectedCard.transform.SetParent(cardManager.previewParent);
+                        selectedCard.Return();
+                        cardManager.NewCardStack(selectedCard);
                         selectedCard = null;
-                        C.UpdateCarder(this, cards.Count);
-                        if (cards.Count == 0) C.Quit(this);
+                        cardManager.UpdateCarder(this, cards.Count);
+                        cardManager.PushCarder(this);
+                        if (cards.Count == 0) cardManager.Quit(this);
                         else if (cards.Count == 1)
                         {
-                            C.oneCardAnimator.Animate();
-                            C.oneCardParticle.Emit(50);
+                            cardManager.oneCardAnimator.Animate();
+                            cardManager.oneCardParticle.Emit(50);
                         }
                     }
                     else
                     {
-                        selectedCard.Done();
+                        cardManager.OnDone(selectedCard, false);
                         Log("That card can't be used");
                     }
                 }
@@ -346,7 +344,7 @@ public class Player : Carder
         }
         if (!Input.GetKey(KeyCode.Space) && lazySelected)
         {
-            C.Next(lazyturn == GetTurn());
+            cardManager.Next(lazyturn == GetTurn());
             lazySelected = false;
         }
         multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), GameManager.deltaTime * 10f);
@@ -354,14 +352,15 @@ public class Player : Carder
 
     public void UpdateSkip()
     {
-        if (Input.GetMouseButtonDown(1) && C.carders[GetTurn()] == this)
+        if (Input.GetMouseButtonDown(1) && cardManager.carders[GetTurn()] == this)
         {
-            if (C.stack > 0) AddCards(C.stack);
+            if (cardManager.stack > 0) AddCards(cardManager.stack);
             else
             {
-                if (cards.Count < 20) PickCard(C.Pick());
-                C.UpdateCarder(this, cards.Count);
-                C.Next();
+                if (cards.Count < 20) PickCard(cardManager.Pick());
+                cardManager.UpdateCarder(this, cards.Count);
+                cardManager.Next();
+                cardManager.DamageCarder(this, 1);
             }
         }
     }
@@ -374,11 +373,11 @@ public class Player : Carder
             selectedCard = null;
             return;
         }
-        float canvasWidth = C.cardParent.sizeDelta.x;
+        float canvasWidth = cardManager.cardParent.sizeDelta.x;
         float width = cards.Count * 400f + (cards.Count - 1) * 25f;
         float halfWidth = width / 2f;
-        float bottom = -C.cardParent.sizeDelta.y / 2f;
-        float deltaTime = GameManager.deltaTime * C.cardSpeed;
+        float bottom = -cardManager.cardParent.sizeDelta.y / 2f;
+        float deltaTime = GameManager.deltaTime * cardManager.cardSpeed;
         float mouseHeight = cardMode switch
         {
             0 => (Input.mousePosition.y / Screen.height * 4f - 0.25f) * (selected ? 0.1f : 1f),
@@ -431,7 +430,7 @@ public class Player : Carder
         selectedCard = cards[closest];
         cardHilight.position = selectedCard.transform.position;
         cardHilight.rotation = selectedCard.transform.rotation;
-        if (selectedCard.transform.GetSiblingIndex() != C.cardParent.childCount - 2) selectedCard.transform.SetSiblingIndex(C.cardParent.childCount - 2);
+        if (selectedCard.transform.GetSiblingIndex() != cardManager.cardParent.childCount - 2) selectedCard.transform.SetSiblingIndex(cardManager.cardParent.childCount - 2);
     }
 
     public void UpdateModeVisual()
@@ -461,12 +460,13 @@ public class Player : Carder
             if (cards.Count > 19)
             {
                 Log("Lose");
-                C.Quit(this);
+                cardManager.Quit(this);
                 break;
             }
         }
-        C.UpdateCarder(this, cards.Count);
-        C.Damage();
+        cardManager.DamageCarder(this, (int)count);
+        cardManager.UpdateCarder(this, cards.Count);
+        cardManager.Damage();
     }
 
     public override int CardCount()
@@ -476,7 +476,7 @@ public class Player : Carder
 
     public override void Accept(bool resume)
     {
-        C.Ready(() => UpdateStatus(true, resume));
+        cardManager.Ready(() => UpdateStatus(true, resume));
     }
 
     #region Logging

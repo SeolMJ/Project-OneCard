@@ -31,15 +31,11 @@ public class ResourceManager : ScriptableObject
     public Sprite[] numbers;
     [Space]
     public GameObject cardPrefab;
-    public GameObject attackCardPrefab;
     public GameObject[] symbolPrefabs;
     [Space]
-    public GameObject previewDonePrefab;
-    public GameObject previewPickPrefab;
-    [Space]
-    public GameObject donePrefab;
-    [Space]
-    public GameObject chatPrefab;
+    public Sprite doneSprite;
+    public Sprite doneCardSprite;
+    public Sprite pickCardSprite;
 
     [Header("Scenes")]
     public int[] gameScenes;

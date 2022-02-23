@@ -35,7 +35,6 @@ public class CardManager : MonoBehaviour
     [Header("Preview")]
     public Transform previewParent;
     public RectTransform previewPivot;
-    public Text consoleText;
 
     [Header("Carders")]
     public GameObject carderPrefab;
@@ -48,9 +47,6 @@ public class CardManager : MonoBehaviour
     public GameObject[] cardObjects;
     public GameObject[] idleObjects;
 
-    [Header("Chat")]
-    public ChatManager chatManager;
-
     [Header("Debug")]
     public bool playing;
     public CardInfo lastCard;
@@ -59,6 +55,8 @@ public class CardManager : MonoBehaviour
     public Card previewCard;
     public bool opposite;
     public List<Carder> carders;
+    public Stack<Card> inactiveCards = new(10);
+    public Stack<Image> inactiveSymbols = new(32);
 
     private float angleOffset;
     private bool readying;
@@ -106,8 +104,8 @@ public class CardManager : MonoBehaviour
             {
                 Card card = PreviewCard(data.nowCard);
                 NewCardStack(card);
-                if (data.nowDamaged) card.Done();
-                if (data.nowPicked) card.Pick();
+                if (data.nowDamaged) OnDone(card);
+                if (data.nowPicked) OnPick();
             }
             Log("Game Resumed", 3);
         }
@@ -285,7 +283,7 @@ public class CardManager : MonoBehaviour
     public void Damage(bool lazy = false)
     {
         stack = 0;
-        previewCard?.Done(true);
+        if (previewCard) OnDone(previewCard);
         if (!lazy) Next();
     }
 
@@ -319,7 +317,7 @@ public class CardManager : MonoBehaviour
         foreach (RectTransform rects in carderRects) Destroy(rects.gameObject);
         carderRects.Clear();
 
-        if (previewCard) previewCard.Destroy();
+        if (previewCard) previewCard.Kill();
         Player.instance.UpdateStatus(false);
 
         if (cardFadeCoroutine != null) StopCoroutine(cardFadeCoroutine);
@@ -351,8 +349,35 @@ public class CardManager : MonoBehaviour
     public CardInfo Pick()
     {
         CardInfo card = RandomCard();
-        previewCard?.Pick();
+        OnPick();
         return card;
+    }
+
+    public Card GetCard(CardInfo info, Transform parent, CardInitMode mode = CardInitMode.Normal)
+    {
+        if (inactiveCards.Count == 0)
+        {
+            GameObject obj = Instantiate(GameManager.Resource.cardPrefab, parent);
+            Card card = obj.GetComponent<Card>();
+            card.Init(info, mode);
+            return card;
+        }
+        else
+        {
+            Card card = inactiveCards.Pop();
+            if (!card) return GetCard(info, parent, mode);
+            card.transform.SetParent(parent, false);
+            card.transform.SetAsLastSibling();
+            card.gameObject.SetActive(true);
+            card.Init(info, mode);
+            return card;
+        }
+    }
+
+    public void ReturnCard(Card card)
+    {
+        card.gameObject.SetActive(false);
+        inactiveCards.Push(card);
     }
 
     public void ReLayout()
@@ -375,18 +400,46 @@ public class CardManager : MonoBehaviour
         carderRects[index].GetComponentInChildren<TMP_Text>().text = cardCount.ToString();
     }
 
+    public void DamageCarder(Carder carder, int count)
+    {
+        int index = carders.IndexOf(carder);
+        if (index == -1) return;
+        Vector2 position = carderRects[index].position;
+        for (int i = 0; i < count; i++)
+        {
+            MiniCardRenderer.Add(previewPivot.position, position, i * -0.1f);
+        }
+    }
+
+    public void PushCarder(Carder carder)
+    {
+        int index = carders.IndexOf(carder);
+        if (index == -1) return;
+        Vector2 position = carderRects[index].position;
+        MiniCardRenderer.Add(position, previewPivot.position, 0f);
+    }
+
+    public void PushCarder(Carder carder, int count)
+    {
+        int index = carders.IndexOf(carder);
+        if (index == -1) return;
+        Vector2 position = carderRects[index].position;
+        for (int i = 0; i < count; i++)
+        {
+            MiniCardRenderer.Add(position, previewPivot.position, i * -0.1f);
+        }
+    }
+
     public void NewCardStack(Card card)
     {
-        if (previewCard) previewCard.Destroy();
+        if (previewCard) previewCard.Kill();
         previewCard = card;
     }
 
     public Card PreviewCard(CardInfo card)
     {
-        GameObject obj = Instantiate(GameManager.Resource.cardPrefab, previewParent);
-        Card newCard = obj.GetComponent<Card>();
+        Card newCard = GetCard(card, previewParent, CardInitMode.Return);
         newCard.MoveTo(Vector2.up * (cardParent.sizeDelta.y / 2f + 440f));
-        newCard.Init(card, true);
         return newCard;
     }
     
@@ -431,6 +484,24 @@ public class CardManager : MonoBehaviour
         return true;
     }
 
+    // Efects
+
+    public void OnDone(Card card, bool set = true)
+    {
+        if (!card) return;
+        if (set) card.image.sprite = GameManager.Resource.doneSprite;
+        Card doneCard = GetCard(CardInfo.Idle, card.transform, CardInitMode.Direct);
+        doneCard.image.sprite = GameManager.Resource.doneCardSprite;
+        doneCard.transform.localPosition = Vector3.zero;
+    }
+
+    public void OnPick()
+    {
+        Card card = GetCard(CardInfo.Idle, previewParent, CardInitMode.Popup);
+        card.MoveTo(Vector2.up * (cardParent.sizeDelta.y / 2f + 440f));
+        card.image.sprite = GameManager.Resource.pickCardSprite;
+    }
+
     #region Logging
 
     public static LogPreset? logPreset;
@@ -462,6 +533,8 @@ public struct CardInfo
         this.type = type;
         this.num = num;
     }
+
+    public static CardInfo Idle => new(CardType.None, CardNum.None);
 }
 
 [Flags]

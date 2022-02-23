@@ -1,11 +1,18 @@
 using System.Collections;
+using System.Collections.Generic;
+using SeolMJ;
 using UnityEngine;
+using UnityEngine.UI;
 
-public abstract class Card : MonoBehaviour
+public class Card : MonoBehaviour
 {
 
     [Header("Orientation")]
     public RectTransform thisRect;
+    public Image image;
+    public Sprite defaultImage;
+    public CanvasGroup group;
+    public SymbolAnimator[] symbols;
 
     [Header("Card")]
     public CardType type;
@@ -14,107 +21,163 @@ public abstract class Card : MonoBehaviour
     [HideInInspector] public bool picked;
     [HideInInspector] public bool done;
 
-    protected Coroutine activeJob;
-    protected Coroutine activeMove;
-    protected readonly WaitForEndOfFrame waitForEnd = new ();
-    protected bool destroying;
+    private bool active;
 
-    private void OnValidate()
+    #region StateMachine
+
+    public delegate void State();
+    public State state;
+
+    #endregion
+
+    void OnValidate()
     {
         thisRect = GetComponent<RectTransform>();
     }
 
-    private void OnEnable()
+    void Update()
     {
-        if (destroying) Destroy(gameObject);
+        state?.Invoke();
     }
 
-    public void Init(CardInfo card, bool home = false)
+    void OnDisable()
+    {
+        if (active)
+        {
+            active = false;
+            CardManager.instance.ReturnCard(this);
+        }
+    }
+
+    public void Init(CardInfo card, CardInitMode mode = CardInitMode.Normal)
     {
         type = card.type;
         num = card.num;
-        SelectSymbol(home);
+        image.sprite = defaultImage;
+        group.alpha = 1f;
+        transform.localScale = Vector3.one;
+        active = true;
+        state = null;
+        transform.rotation = Quaternion.identity;
+        SelectSymbol(mode);
     }
 
-    public abstract void SelectSymbol(bool home);
-
-    public void GoHome()
+    public void SelectSymbol(CardInitMode mode)
     {
-        if (this == null) return;
-        if (!gameObject.activeInHierarchy) return;
-        if (activeMove != null) StopCoroutine(activeMove);
-        activeMove = StartCoroutine(DoGoHome());
-    }
-
-    IEnumerator DoGoHome()
-    {
-        Vector2 homePos = CardManager.instance.previewPivot.anchoredPosition;
-        float speed = CardManager.instance.cardSpeed;
-        while (Vector2.Distance(homePos, thisRect.anchoredPosition) > 0.01f)
+        if (!gameObject.activeInHierarchy)
         {
-            MoveTo(Vector2.Lerp(thisRect.anchoredPosition, homePos, GameManager.deltaTime * speed));
-            yield return waitForEnd;
+            Error("Init Canceled: GameObject not Active");
+            return;
+        }
+        switch (num)
+        {
+            case CardNum.A: ActiveSymbols(16); break;
+            case CardNum.Two: ActiveSymbols(5, 10); break;
+            case CardNum.Three: ActiveSymbols(5, 8, 10); break;
+            case CardNum.Four: ActiveSymbols(0, 4, 11, 15); break;
+            case CardNum.Five: ActiveSymbols(0, 4, 8, 11, 15); break;
+            case CardNum.Six: ActiveSymbols(0, 2, 4, 11, 13, 15); break;
+            case CardNum.Seven: ActiveSymbols(0, 2, 4, 7, 11, 13, 15); break;
+            case CardNum.Eight: ActiveSymbols(0, 1, 3, 4, 11, 12, 14, 15); break;
+            case CardNum.Nine: ActiveSymbols(0, 1, 3, 4, 8, 11, 12, 14, 15); break;
+            case CardNum.Ten: ActiveSymbols(0, 1, 3, 4, 6, 9, 11, 12, 14, 15); break;
+            case CardNum.BlackJoker: ActiveSymbols(16); break;
+            case CardNum.ColorJoker: ActiveSymbols(16); break;
+            case CardNum.None: ActiveSymbols(); break;
+            default: ActiveSymbols(0, 16, 15); break;
+        };
+        switch (mode)
+        {
+            case CardInitMode.Return: Return(); break;
+            case CardInitMode.Popup: ReturnAndKill(); break;
+            case CardInitMode.Direct:
+                killSpeed = CardManager.instance.cardFadeSpeed * 2f;
+                state = KillState;
+                break;
         }
     }
 
-    public void Destroy()
+    void ActiveSymbols(params int[] indexs)
     {
-        if (this == null) return;
-        if (!gameObject.activeInHierarchy) return;
-        destroying = true;
-        if (activeJob != null) StopCoroutine(activeJob);
-        activeJob = StartCoroutine(DoDestroy());
-    }
-
-    IEnumerator DoDestroy()
-    {
-        CanvasGroup group = gameObject.GetComponent<CanvasGroup>();
-        if (!group) group = gameObject.AddComponent<CanvasGroup>();
-        while (group.alpha > 0)
+        if (indexs == null || indexs.Length == 0)
         {
-            group.alpha -= GameManager.deltaTime * CardManager.instance.cardFadeSpeed;
-            transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
-            yield return waitForEnd;
+            for (int i = 0; i < 17; i++) symbols[i].gameObject.SetActive(false);
         }
-        Destroy(gameObject);
-    }
-
-    public virtual void Done(bool check = false)
-    {
-        if (this == null) return;
-        if (!gameObject.activeInHierarchy) return;
-        StartCoroutine(Popup(GameManager.Resource.previewDonePrefab));
-        done = true;
-    }
-
-    public virtual void Pick()
-    {
-        if (this == null) return;
-        if (!gameObject.activeInHierarchy) return;
-        StartCoroutine(Popup(GameManager.Resource.previewPickPrefab));
-        picked = true;
-    }
-
-    IEnumerator Popup(GameObject prefab)
-    {
-        Transform target = Instantiate(prefab, transform).transform;
-        CanvasGroup group = target.GetComponent<CanvasGroup>();
-        while (group.alpha <= 0.999f)
+        else
         {
-            group.alpha = Mathf.Lerp(group.alpha, 1, GameManager.deltaTime * CardManager.instance.cardFadeSpeed * 4f);
-            target.localScale = Vector3.one * Mathf.Lerp(1.25f, 1f, group.alpha);
-            yield return waitForEnd;
+            int count = indexs.Length;
+            float delay = CardManager.instance.symbolDelay / count;
+            List<int> index = new(indexs);
+            for (int i = 0, j = 0; i < 17; i++)
+            {
+                int id = index.IndexOf(i);
+                if (j < count && id != -1)
+                {
+                    symbols[i].Init(delay * j, GameManager.instance.GetSymbol(i == 16, type, num));
+                    index.RemoveAt(id);
+                    j++;
+                }
+                else
+                {
+                    symbols[i].gameObject.SetActive(false);
+                }
+            }
         }
-        group.alpha = 1;
-        target.localScale = Vector3.one;
-        //yield return new WaitForSeconds(0.1f);
-        while (group.alpha > 0.001f)
+    }
+
+    public void Return()
+    {
+        returnPos = CardManager.instance.previewPivot.anchoredPosition;
+        state = ReturnState;
+    }
+
+    private Vector2 returnPos;
+    private Vector2 returnVel;
+
+    private void ReturnState()
+    {
+        MoveTo(Vector2.SmoothDamp(thisRect.anchoredPosition, returnPos, ref returnVel, 0.1f, Mathf.Infinity, GameManager.deltaTime));
+    }
+
+    public void Kill()
+    {
+        killSpeed = CardManager.instance.cardFadeSpeed;
+        state = KillState;
+    }
+
+    private float killSpeed;
+    private float killVelocity;
+
+    private void KillState()
+    {
+        group.alpha = Mathf.SmoothDamp(group.alpha, 0f, ref killVelocity, killSpeed, Mathf.Infinity, GameManager.deltaTime);
+        transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
+        if (group.alpha <= 0.01f)
         {
-            yield return waitForEnd;
-            group.alpha = Mathf.Lerp(group.alpha, 0, GameManager.deltaTime * CardManager.instance.cardFadeSpeed * 2f);
-            target.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
-}
-        Destroy(target.gameObject);
+            state = null;
+            active = false;
+            CardManager.instance.ReturnCard(this);
+        }
+    }
+
+    public void ReturnAndKill()
+    {
+        returnPos = CardManager.instance.previewPivot.anchoredPosition;
+        killSpeed = CardManager.instance.cardFadeSpeed * 2f;
+        state = ReturnAndKillState;
+    }
+
+    public void ReturnAndKillState()
+    {
+        MoveTo(Vector2.SmoothDamp(thisRect.anchoredPosition, returnPos, ref returnVel, 0.1f, Mathf.Infinity, GameManager.deltaTime));
+        group.alpha = Mathf.SmoothDamp(group.alpha, 0f, ref killVelocity, killSpeed, Mathf.Infinity, GameManager.deltaTime);
+        transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1f, group.alpha);
+        if (group.alpha <= 0.01f)
+        {
+            state = null;
+            active = false;
+            CardManager.instance.ReturnCard(this);
+        }
     }
 
     public void MoveTo(Vector2 position)
@@ -132,4 +195,27 @@ public abstract class Card : MonoBehaviour
         return new CardInfo(type, num);
     }
 
+    #region Logging
+
+    public static LogPreset? logPreset;
+
+    public static void Log(string message)
+    {
+        logPreset ??= new("Card Item", GameManager.Resource.cardItemLogColor);
+        Log4u.Log(logPreset.Value, message);
+    }
+
+    public static void Error(string message)
+    {
+        logPreset ??= new("Card Item", GameManager.Resource.cardItemLogColor);
+        Log4u.Error(logPreset.Value, message);
+    }
+
+    #endregion
+
+}
+
+public enum CardInitMode
+{
+    Normal, Return, Popup, Direct
 }

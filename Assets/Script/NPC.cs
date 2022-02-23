@@ -64,6 +64,7 @@ public abstract class NPC : Carder
                 info.nowCards.Add(C.Pick());
                 C.Next();
                 C.UpdateCarder(this, info.nowCards.Count);
+                C.DamageCarder(this, 1);
             }
         }
         else
@@ -77,6 +78,7 @@ public abstract class NPC : Carder
             C.NewCardStack(C.PreviewCard(info.nowCards[push]));
             info.nowCards.RemoveAt(push);
             C.UpdateCarder(this, info.nowCards.Count);
+            C.PushCarder(this, 1);
             if (info.nowCards.Count == 0)
             {
                 Log("승리!");
@@ -89,7 +91,14 @@ public abstract class NPC : Carder
 
     public override void AddCards(uint count)
     {
-        for (int i = 0; i < count; i++) info.nowCards.Add(CardUtils.RandomCard(false));
+        for (int i = 0; i < count; i++)
+        {
+            CardInfo card = CardUtils.RandomCard(false);
+            info.cards.Add(card);
+            info.nowCards.Add(card);
+        }
+
+        C.DamageCarder(this, (int)count);
 
         Log($"막을 수 있는 카드 없음. 카드 {count}개 추가");
 

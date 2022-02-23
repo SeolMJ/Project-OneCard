@@ -23,26 +23,14 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     public ResourceManager resource;
 
-    [Header("UI")]
-    public Camera uiCamera;
-
     [Header("Loading")]
-    public RectTransform busyRect;
     public CanvasGroup busyGroup;
-    public Vector2 busySize;
+    public LoadingCard[] busyCards;
     public float busySpeed;
-    [Space]
-    public int busyWorks;
 
+    public static int busyWorks;
 
-    public static ResourceManager Resource
-    {
-        get
-        {
-            //if (!resource) resource = Resources.Load<ResourceManager>("ResourceManager");
-            return instance.resource;
-        }
-    }
+    public static ResourceManager Resource => instance.resource;
 
     // Save Load
     [HideInInspector] public bool loaded;
@@ -50,7 +38,6 @@ public class GameManager : MonoBehaviour
 
     // Loading
     private float busyAlphaVel;
-    private Vector2 busySizeVel;
 
     // NPCs
     [HideInInspector] public List<NPC> activeNPCs;
@@ -73,7 +60,6 @@ public class GameManager : MonoBehaviour
             return;
         }
         totalTime = 0;
-        //consoleThread = new Thread();
     }
 
     void Start()
@@ -92,8 +78,8 @@ public class GameManager : MonoBehaviour
         bool isBusy = busyWorks > 0;
         if (isBusy || busyGroup.alpha != 0)
         {
-            busyRect.sizeDelta = Vector2.SmoothDamp(busyRect.sizeDelta, new Vector2(isBusy ? busySize.x * (busyWorks + 1) : busySize.x, busySize.y), ref busySizeVel, busySpeed);
-            busyGroup.alpha = Mathf.SmoothDamp(busyGroup.alpha, isBusy ? 1 : 0, ref busyAlphaVel, busySpeed);
+            busyGroup.alpha = Mathf.SmoothDamp(busyGroup.alpha, isBusy ? 1 : 0, ref busyAlphaVel, isBusy ? busySpeed * 0.5f : busySpeed);
+            foreach (LoadingCard card in busyCards) card.Animate();
         }
     }
 
@@ -132,7 +118,6 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < Resource.defaultCardCount; i++) data.cards.Add(CardUtils.RandomCard());
         for (int i = 0; i < Resource.npcs.Count; i++) data.entities.Add(new());
         loaded = true;
-        SceneLoader.LoadLevel(2);
     }
 
     // Save & Load
@@ -207,7 +192,6 @@ public class GameManager : MonoBehaviour
         }
         Log(LoadLog, "Success", 3);
         loaded = true;
-        SceneLoader.LoadLevel(2);
     }
 
     public async void Save()
@@ -545,12 +529,12 @@ public class Busy : IDisposable
     public Busy(int amount)
     {
         this.amount = amount;
-        GameManager.instance.busyWorks += amount;
+        GameManager.busyWorks += amount;
     }
 
     public void Dispose()
     {
-        GameManager.instance.busyWorks -= amount;
+        GameManager.busyWorks -= amount;
     }
 }
 
