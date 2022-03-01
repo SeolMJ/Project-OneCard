@@ -22,7 +22,8 @@ public class MiniCardRenderer : MonoBehaviour
 
     void Start()
     {
-        miniCards.Clear();
+        miniCards = new(128);
+        matrices = new Matrix4x4[1023];
     }
 
     void Update()

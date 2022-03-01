@@ -319,4 +319,6 @@ public abstract class NPC : Carder
         return cont[TrashRandom(cont.Count)];
     }
 
+    //int[] Multiple()
+
 }

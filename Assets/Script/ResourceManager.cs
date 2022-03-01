@@ -36,6 +36,8 @@ public class ResourceManager : ScriptableObject
     public Sprite doneSprite;
     public Sprite doneCardSprite;
     public Sprite pickCardSprite;
+    [Space]
+    public GameObject speachBobble;
 
     [Header("Scenes")]
     public int[] gameScenes;

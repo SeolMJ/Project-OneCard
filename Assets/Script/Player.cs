@@ -324,21 +324,23 @@ public class Player : Carder
             }
             else
             {
-                if (cards.Count < 2) return;
-                cards.Remove(selectedCard);
-                float min = Mathf.Infinity;
-                Card closest = null;
-                for (int i = 0; i < cards.Count; i++)
+                if (cards.Count > 1)
                 {
-                    float offset = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - cardPos.x);
-                    if (offset < min)
+                    cards.Remove(selectedCard);
+                    float min = Mathf.Infinity;
+                    Card closest = null;
+                    for (int i = 0; i < cards.Count; i++)
                     {
-                        min = offset;
-                        closest = cards[i];
+                        float offset = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - cardPos.x);
+                        if (offset < min)
+                        {
+                            min = offset;
+                            closest = cards[i];
+                        }
                     }
+                    if (closest) cards.Insert(cards.IndexOf(closest) + (cardPos.x - closest.thisRect.anchoredPosition.x > 0 ? 1 : 0), selectedCard);
+                    else cards.Insert(cards.Count - 1, selectedCard);
                 }
-                if (!closest) return;
-                cards.Insert(cards.IndexOf(closest) + (cardPos.x - closest.thisRect.anchoredPosition.x > 0 ? 1 : 0), selectedCard);
             }
             selected = false;
         }

@@ -387,7 +387,7 @@ public class CardManager : MonoBehaviour
         {
             if (carderRects.Count <= i) carderRects.Add(Instantiate(carderPrefab, cardersParent).GetComponent<RectTransform>());
             carderRects[i].anchoredPosition = new Vector3(Mathf.Cos(i * angleOffset * Mathf.Deg2Rad), Mathf.Sin(i * angleOffset * Mathf.Deg2Rad), 0) * carderDistance;
-            carderRects[i].GetComponent<Image>().color = carders[i] is Player ? Color.green : Color.white;
+            carderRects[i].GetComponent<Image>().color = carders[i] is Player ? Color.red : Color.white;
             carderRects[i].GetComponentInChildren<TMP_Text>().text = carders[i].CardCount().ToString();
         }
     }
