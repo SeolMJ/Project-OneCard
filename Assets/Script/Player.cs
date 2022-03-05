@@ -54,6 +54,7 @@ public class Player : Carder
     private bool lazySelected;
     private int lazyturn;
     private Coroutine initCardRoutine;
+    private bool cardReady;
 
     // Attack
     private bool attackCardOpened;
@@ -96,7 +97,24 @@ public class Player : Carder
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (!carding) Party(4);
+            if (!carding)
+            {
+                PartyField.instance.Open(transform.position);
+                cardReady = true;
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.Q) && !carding)
+        {
+            PartyField.instance.Close();
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (cardReady)
+            {
+                PartyField.instance.Party();
+                cardReady = false;
+                if (!carding) Party(2);
+            }
         }
 
         if (carding) // Cards

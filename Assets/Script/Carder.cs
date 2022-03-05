@@ -17,11 +17,7 @@ public abstract class Carder : MonoBehaviour
     {
         if (C.playing) return;
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range, GameManager.Resource.carderLayer);
-        if (hits.Length < 2)
-        {
-
-            return;
-        }
+        if (hits.Length < 2) return;
         for (int i = 0; i < hits.Length; i++)
         {
             if (hits[i].TryGetComponent(out Carder carder))
