@@ -99,7 +99,7 @@ public class Player : Carder
         {
             if (!carding)
             {
-                PartyField.instance.Open(transform.position);
+                PartyField.instance.Open(new Vector2(transform.position.x, transform.position.y + 0.735f));
                 cardReady = true;
             }
         }
