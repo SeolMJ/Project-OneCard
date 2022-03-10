@@ -53,11 +53,9 @@ public class Player : Carder
     private Card selectedCard;
     private bool lazySelected;
     private int lazyturn;
+    private int lazyCount = 0;
     private Coroutine initCardRoutine;
     private bool cardReady;
-
-    // Attack
-    private bool attackCardOpened;
 
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
@@ -99,7 +97,7 @@ public class Player : Carder
         {
             if (!carding)
             {
-                PartyField.instance.Open(new Vector2(transform.position.x, transform.position.y + 0.735f));
+                PartyField.instance.Open();
                 cardReady = true;
             }
         }
@@ -115,6 +113,11 @@ public class Player : Carder
                 cardReady = false;
                 if (!carding) Party(2);
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            CoinRenderer.Add(camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10)));
         }
 
         if (carding) // Cards
@@ -279,7 +282,7 @@ public class Player : Carder
 
     public void UpdateSelection()
     {
-        if (Input.GetMouseButton(0) && selectedCard)
+        if (Input.GetMouseButton(0) && selectedCard) // On Card Selected
         {
             selected = true;
             selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, GameManager.deltaTime * cardManager.cardSpeed));
@@ -292,23 +295,40 @@ public class Player : Carder
             }
             else if(cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(false);
         }
-        if (Input.GetMouseButtonUp(0) && selected && selectedCard)
+        if (Input.GetMouseButtonUp(0) && selected && selectedCard) // On Card Deselected
         {
             cardHilight.gameObject.SetActive(true);
             Vector2 cardPos = selectedCard.thisRect.anchoredPosition;
-            if (cardManager.previewCard && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist && cardMode == 0)
+            if (cardManager.previewCard && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist && cardMode == 0) // Card Submit
             {
-                if (cardManager.carders.Contains(this) && (cardManager.carders[GetTurn()] == this || lazySelected))
+                if (cardManager.carders.Contains(this) && (cardManager.carders[GetTurn()] == this || lazySelected)) // My Turn
                 {
                     bool pushed;
+                    CardInfo card = new(selectedCard.type, selectedCard.num);
+                    CardInfo cardCache = cardManager.lastCard;
                     if (Input.GetKey(KeyCode.Space))
                     {
                         if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
                         {
-                            pushed = cardManager.Push(new CardInfo(selectedCard.type, selectedCard.num), true);
+                            pushed = cardManager.Push(card, true);
                             if (!lazySelected) lazyturn = GetTurn();
                             if (pushed)
                             {
+                                lazyCount++;
+
+                                // Card Pushed (Multiple)
+
+                                int damage = GetStack(card); // Base (Ace, 2, Joker)
+                                if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
+                                if (cardCache == card) damage += 3; // Same
+
+                                damage += lazyCount;
+
+                                gameManager.money += damage; // Apply
+                                CoinRenderer.Add(selectedCard.transform.position, damage);
+
+                                // Card Pushed (Multiple)
+
                                 lazySelected = true;
                                 cardManager.UpdateCarder(this, cards.Count);
                                 cardManager.PushCarder(this);
@@ -316,9 +336,20 @@ public class Player : Carder
                         }
                         else pushed = false;
                     }
-                    else pushed = cardManager.Push(new CardInfo(selectedCard.type, selectedCard.num));
+                    else pushed = cardManager.Push(card);
                     if (pushed)
                     {
+                        // Card Pushed (Single)
+
+                        int damage = GetStack(card); // Base (Ace, 2, Joker)
+                        if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
+                        if (cardCache == card) damage += 3; // Same
+
+                        gameManager.money += damage; // Apply
+                        CoinRenderer.Add(selectedCard.transform.position, damage);
+
+                        // Card Pushed (Single)
+
                         cards.Remove(selectedCard);
                         selectedCard.transform.SetParent(cardManager.previewParent);
                         selectedCard.Return();
@@ -336,7 +367,7 @@ public class Player : Carder
                     else
                     {
                         cardManager.OnDone(selectedCard, false);
-                        Log("That card can't be used");
+                        Log("Invalid Card");
                     }
                 }
             }
@@ -366,6 +397,7 @@ public class Player : Carder
         {
             cardManager.Next(lazyturn == GetTurn());
             lazySelected = false;
+            lazyCount = 0;
         }
         multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), GameManager.deltaTime * 10f);
     }
@@ -374,13 +406,32 @@ public class Player : Carder
     {
         if (Input.GetMouseButtonDown(1) && cardManager.carders[GetTurn()] == this)
         {
-            if (cardManager.stack > 0) AddCards(cardManager.stack);
-            else
+            if (cardManager.stack > 0) // Self Damaged
+            {
+                // Self Damaged
+
+                int damage = (int)cardManager.stack;
+
+                gameManager.money -= damage;
+                if (gameManager.money < 0) gameManager.money = 0;
+
+                // Self Damaged
+
+                AddCards(cardManager.stack);
+            }
+            else // Just Skip
             {
                 if (cards.Count < 20) PickCard(cardManager.Pick());
                 cardManager.UpdateCarder(this, cards.Count);
                 cardManager.Next();
                 cardManager.DamageCarder(this, 1);
+
+                // Skipped
+
+                gameManager.money--;
+                if (gameManager.money < 0) gameManager.money = 0;
+
+                // Skipped
             }
         }
     }

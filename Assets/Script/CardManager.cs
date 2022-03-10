@@ -323,6 +323,8 @@ public class CardManager : MonoBehaviour
         if (cardFadeCoroutine != null) StopCoroutine(cardFadeCoroutine);
         cardFadeCoroutine = StartCoroutine(DoStop());
 
+        PartyField.instance.Close();
+
         playing = false;
 
         Log("Game Ended");
@@ -535,6 +537,13 @@ public struct CardInfo
     }
 
     public static CardInfo Idle => new(CardType.None, CardNum.None);
+
+    public static bool operator==(CardInfo left, CardInfo right) => left.type == right.type && left.num == right.num;
+    public static bool operator!=(CardInfo left, CardInfo right) => left.type != right.type || left.num != right.num;
+
+    public override bool Equals(object obj) => base.Equals(obj);
+    public override int GetHashCode() => base.GetHashCode();
+
 }
 
 [Flags]

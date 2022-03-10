@@ -50,6 +50,18 @@ namespace SeolMJ
             };
         }
 
+        public static int GetStack(CardInfo card)
+        {
+            return card.num switch
+            {
+                CardNum.A => 3,
+                CardNum.Two => 2,
+                CardNum.BlackJoker => 5,
+                CardNum.ColorJoker => 7,
+                _ => 0
+            };
+        }
+
         public static void ChangeSet(bool isCard)
         {
             if (cardManager.cardObjects.Length > 0)

@@ -1,16 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Linq;
 using System.IO;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using SeolMJ;
+
 using static SeolMJ.Log4u;
-using TMPro;
-using System.Threading;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,6 +14,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Datas")]
     public SaveData data;
+
+    [Header("Stats")]
+    public int health;
+    public int damage;
+    public int luck;
+    public int money;
 
     [Header("References")]
     public ResourceManager resource;
@@ -157,6 +158,13 @@ public class GameManager : MonoBehaviour
             // Global
             Log(LoadLog, $"{data.cards.Count} cards loaded", 2);
 
+            // Stats
+            health = data.health;
+            damage = data.damage;
+            luck = data.luck;
+            money = data.money;
+            Log(SaveLog, $"Health: {health}, Damage: {damage}, Luck: {luck}, Money: {money}", 2);
+
             // NPCs
             List<NPCInfo> npcs = Resource.npcs;
             if (data.entities == null)
@@ -211,6 +219,13 @@ public class GameManager : MonoBehaviour
                 // Scene
                 data.scene = SceneManager.GetActiveScene().buildIndex;
                 Log(SaveLog, $"{data.scene}th scene saved", 2);
+
+                // Stats
+                data.health = health;
+                data.damage = damage;
+                data.luck = luck;
+                data.money = money;
+                Log(SaveLog, $"Health: {data.health}, Damage: {data.damage}, Luck: {data.luck}, Money: {data.money}", 2);
 
                 // Card Game
                 if (Player.instance.carding)
@@ -473,6 +488,10 @@ public class SaveData
     // Player
     public SaveVector position;
     public SaveVector velocity;
+    public int health;
+    public int damage;
+    public int luck;
+    public int money;
 
     // World
     public List<EntityData> entities;
