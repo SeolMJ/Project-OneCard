@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
+using SeolMJ;
+
 public class CardMenu : MonoBehaviour
 {
 
@@ -20,6 +22,8 @@ public class CardMenu : MonoBehaviour
     [Header("Settings")]
     public AnimationCurve cardHeightCurve;
     public float delay;
+    public float speed;
+    public float damp;
 
     private Vector2 mousePos;
     private RectTransform selected;
@@ -27,7 +31,7 @@ public class CardMenu : MonoBehaviour
 
     private bool finished;
 
-    private Vector2 returnVel;
+    private Vector2 velocity, velvel;
 
     void Start()
     {
@@ -42,7 +46,7 @@ public class CardMenu : MonoBehaviour
             {
                 if (cards[i] == selected)
                 {
-                    selected.anchoredPosition = Vector2.SmoothDamp(selected.anchoredPosition, finish.anchoredPosition, ref returnVel, 0.1f, Mathf.Infinity, Time.unscaledDeltaTime);
+                    selected.anchoredPosition = Utils.SpringDamp(selected.anchoredPosition, finish.anchoredPosition, ref velocity, ref velvel, speed, damp, Time.unscaledDeltaTime);
                     selected.localRotation = Quaternion.Lerp(selected.localRotation, Quaternion.identity, Time.unscaledDeltaTime * 10f);
                     continue;
                 }
@@ -66,7 +70,7 @@ public class CardMenu : MonoBehaviour
         if (pressed && Input.GetMouseButtonUp(0))
         {
             pressed = false;
-            if (Vector2.Distance(selected.anchoredPosition, finish.anchoredPosition) <= 150f)
+            if (Vector2.Distance(mousePos, finish.anchoredPosition) <= 200f || Vector2.Distance(selected.anchoredPosition, finish.anchoredPosition) <= 200f)
             {
                 finished = true;
                 for(int i = 0; i < cards.Length; i++)
@@ -87,7 +91,9 @@ public class CardMenu : MonoBehaviour
 
         if (pressed)
         {
-            selected.anchoredPosition = Vector2.Lerp(selected.anchoredPosition, mousePos, Time.unscaledDeltaTime * 10f);
+            Vector2 position = Vector2.Lerp(selected.anchoredPosition, mousePos, Time.unscaledDeltaTime * 10f);
+            velocity = (position - selected.anchoredPosition) / Time.unscaledDeltaTime;
+            selected.anchoredPosition = position;
             selected.localRotation = Quaternion.Lerp(selected.localRotation, Quaternion.identity, Time.unscaledDeltaTime * 10f);
             if (Vector2.Distance(selected.anchoredPosition, finish.anchoredPosition) <= 150f)
             {
