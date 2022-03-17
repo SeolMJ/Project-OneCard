@@ -38,7 +38,7 @@ public class CoinRenderer : MonoBehaviour
         cardCount = 0;
         if (count == 0) return;
 
-        float deltaTime = Time.deltaTime;
+        float deltaTime = GameManager.deltaTime;
         float deltaSpeed = speed * deltaTime;
         Vector2 end = camera.ViewportToWorldPoint(new Vector3(0, 1, 10)) + new Vector3(0.5f, -0.5f, 0f);
         for (int i = 0; i < count; i++)

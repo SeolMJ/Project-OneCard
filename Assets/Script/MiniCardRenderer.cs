@@ -32,7 +32,7 @@ public class MiniCardRenderer : MonoBehaviour
         cardCount = 0;
         if (count == 0) return;
 
-        float deltaTime = Time.deltaTime;
+        float deltaTime = GameManager.deltaTime;
         float deltaSpeed = speed * deltaTime;
         for (int i = 0; i < count; i++)
         {

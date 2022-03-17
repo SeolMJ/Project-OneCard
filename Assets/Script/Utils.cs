@@ -348,7 +348,7 @@ namespace SeolMJ
                             case -3: parenStack[^2] = new(parenStack[^2].op, parenStack[^2].num / -parenStack[^1].num, true); break;
                         }
                     }
-                    else throw new InvalidOperationException($"Invalid Expression"); // ')' operator before placing '('
+                    else throw new InvalidOperationException("Invalid Expression"); // ')' operator before placing '('
                     parenStack.RemoveAt(parenStack.Count - 1);
                     opTemp = 0;
                     continue;
@@ -376,20 +376,20 @@ namespace SeolMJ
 
                 if (c == '*')
                 {
-                    if (opTemp == 1 || opTemp == -1) throw new InvalidOperationException($"Invalid Expression"); // '*' operator after '+' or '-'
+                    if (opTemp == 1 || opTemp == -1) throw new InvalidOperationException("Invalid Expression"); // '*' operator after '+' or '-'
                     opTemp = 2;
                     continue;
                 }
 
                 if (c == '/')
                 {
-                    if (opTemp == 1 || opTemp == -1) throw new InvalidOperationException($"Invalid Expression"); // '/' operator after '+' or '-'
+                    if (opTemp == 1 || opTemp == -1) throw new InvalidOperationException("Invalid Expression"); // '/' operator after '+' or '-'
                     opTemp = 3;
                     continue;
                 }
             }
 
-            if (parenStack.Count != 0) throw new InvalidOperationException($"Unfinished Expression"); // paren not ended
+            if (parenStack.Count != 0) throw new InvalidOperationException("Unfinished Expression"); // paren not ended
 
             if (prevNum)
             {

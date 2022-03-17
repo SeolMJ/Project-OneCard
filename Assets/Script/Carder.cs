@@ -26,6 +26,7 @@ public abstract class Carder : MonoBehaviour
                 carder.Accept();
             }
         }
+        Player.instance.Accept(false);
         Log($"Party at Position ({position.x}, {position.y}), Range {range}, {hits.Length} Targets");
     }
 

@@ -37,12 +37,16 @@ public class Player : Carder
     public CanvasGroup modeTextGroup;
     public Vector3 modeSpeed;
 
+    [Header("Attack")]
+    public LayerMask enemyLayer;
+
     [Header("Debug")]
     public List<Card> cards;
 
     // Global
     [HideInInspector] public bool carding;
-    private Vector2 mousePos;
+    private Vector2 canvasMousePos;
+    private Vector2 worldMousePos;
 
     // Camera
     private Vector3 cameraVel;
@@ -59,6 +63,9 @@ public class Player : Carder
 
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
+
+    // Cardmerang
+    private float shootCooltime;
 
     void Awake()
     {
@@ -90,8 +97,10 @@ public class Player : Carder
     {
         if (GameManager.timeScale == 0) return;
 
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(carding ? cardManager.cardParent : cardManager.attackCardParent, Input.mousePosition, camera, out mousePos);
-        mousePos += (Vector2)transform.position;
+        RectTransform canvas = carding ? cardManager.cardParent : cardManager.attackCardParent;
+        canvasMousePos = new Vector2((Input.mousePosition.x / Screen.width - 0.5f) * canvas.rect.size.x, (Input.mousePosition.y / Screen.height - 0.5f) * canvas.rect.size.y);
+
+        worldMousePos = camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10f));
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -139,6 +148,7 @@ public class Player : Carder
         else // Movement
         {
             UpdateMovement();
+            UpdateCardmerang();
             // UpdateAttackCard();
         }
     }
@@ -192,6 +202,8 @@ public class Player : Carder
         cardManager.UpdateCarder(this, cards.Count);
     }
 
+    // Updates
+
     public void UpdateStatus(bool status, bool fromData = false)
     {
         carding = status;
@@ -213,16 +225,6 @@ public class Player : Carder
             if (initCardRoutine != null) StopCoroutine(initCardRoutine);
             ClearCard();
         }
-    }
-
-    public void UpdateMovement()
-    {
-        Vector2 keyInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        velocity = keyInput == Vector2.zero
-            ? Vector2.zero
-            : Vector2.SmoothDamp(velocity, keyInput.normalized, ref velocityVel, moveSmooth);
-        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * velocity.normalized;
-        else velocityVel = Vector2.zero;
     }
 
     /*
@@ -248,11 +250,6 @@ public class Player : Carder
         }
     }
     */
-
-    public void UpdateCamera()
-    {
-        cameraTransform.position = Vector3.SmoothDamp(cameraTransform.position, transform.position + cameraOffset, ref cameraVel, cameraSpeed);
-    }
 
     public void UpdateMode()
     {
@@ -280,20 +277,25 @@ public class Player : Carder
         }
     }
 
+    public void UpdateCamera()
+    {
+        cameraTransform.position = Vector3.SmoothDamp(cameraTransform.position, transform.position + cameraOffset, ref cameraVel, cameraSpeed);
+    }
+
     public void UpdateSelection()
     {
         if (Input.GetMouseButton(0) && selectedCard) // On Card Selected
         {
             selected = true;
-            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, mousePos, GameManager.deltaTime * cardManager.cardSpeed));
+            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed));
             selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
             if (cardManager.previewCard && cardManager.carders.Contains(this) && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
-                if (!cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(true);
+                if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
                 cardHilight.position = cardManager.previewCard.transform.position;
                 cardHilight.rotation = cardManager.previewCard.transform.rotation;
             }
-            else if(cardHilight.gameObject.activeInHierarchy) cardHilight.gameObject.SetActive(false);
+            else if(cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(false);
         }
         if (Input.GetMouseButtonUp(0) && selected && selectedCard) // On Card Deselected
         {
@@ -314,8 +316,6 @@ public class Player : Carder
                             if (!lazySelected) lazyturn = GetTurn();
                             if (pushed)
                             {
-                                lazyCount++;
-
                                 // Card Pushed (Multiple)
 
                                 int damage = GetStack(card); // Base (Ace, 2, Joker)
@@ -328,6 +328,8 @@ public class Player : Carder
                                 CoinRenderer.Add(selectedCard.transform.position, damage);
 
                                 // Card Pushed (Multiple)
+
+                                lazyCount++;
 
                                 lazySelected = true;
                                 cardManager.UpdateCarder(this, cards.Count);
@@ -458,7 +460,7 @@ public class Player : Carder
         };
         int count = cards.Count;
         float mul = 1f;
-        float mousePosHalf = mousePos.y + 540f;
+        float mousePosHalf = canvasMousePos.y + 540f;
         if (count < 4 && count > 1) mul /= count switch
         {
             2 => 5 - count,
@@ -471,9 +473,9 @@ public class Player : Carder
         {
             if (selected && cards[i] == selectedCard) continue;
             float index = count == 1 ? 0f : ((float)i / (count - 1) - 0.5f) * mul;
-            float pos = 200f + i * 425f - mousePos.x / canvasWidth * width;
-            float offset = (pos - halfWidth - mousePos.x) / canvasWidth;
-            float posX = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - mousePos.x);
+            float pos = 200f + i * 425f - canvasMousePos.x / canvasWidth * width;
+            float offset = (pos - halfWidth - canvasMousePos.x) / canvasWidth;
+            float posX = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - canvasMousePos.x);
             float perlinPlusIndex = index * 10f + Time.time * 0.2f;
             float perlinMinusIndex = index * 10f - Time.time * 0.2f;
             if (posX < minDist)
@@ -481,15 +483,15 @@ public class Player : Carder
                 minDist = posX;
                 closest = i;
             }
-            cards[i].thisRect.anchoredPosition = Vector2.Lerp(cards[i].thisRect.anchoredPosition
+            cards[i].thisRect.anchoredPosition = Vector2.LerpUnclamped(cards[i].thisRect.anchoredPosition
                 , Vector2.Lerp(new Vector2(960f * index, bottom + index * index * -240f)
                 , new Vector2(pos - halfWidth
                 , mousePosHalf * cardHeightCurve.Evaluate(mousePosHalf / 1080f) + (1 - Mathf.Abs(offset)) * 320f - 700f)
                 , mouseHeight) + new Vector2(Mathf.PerlinNoise(perlinPlusIndex, perlinMinusIndex) * 32f
                 , Mathf.PerlinNoise(perlinMinusIndex, perlinPlusIndex) * 32f)
                 , deltaTime);
-            cards[i].transform.localRotation = Quaternion.Lerp(cards[i].transform.localRotation
-                , Quaternion.AngleAxis(Mathf.Lerp(index * -30f, offset * -10f, mouseHeight), Vector3.forward), deltaTime);
+            cards[i].transform.localRotation = Quaternion.LerpUnclamped(cards[i].transform.localRotation
+                , Quaternion.Euler(0, 0, Mathf.Lerp(index * -30f, offset * -10f, mouseHeight)), deltaTime);
         }
         if (cardMode != 0 && cardMode != 2)
         {
@@ -514,6 +516,51 @@ public class Player : Carder
         Vector2 pos = modeRects[cardMode].anchoredPosition + Vector2.right * 96f;
         modeTextGroup.alpha = Mathf.MoveTowards(modeTextGroup.alpha, 0, GameManager.deltaTime * modeSpeed.x);
         modeTextRect.anchoredPosition = Vector2.Lerp(modeTextRect.anchoredPosition, pos, GameManager.deltaTime * modeSpeed.y);
+    }
+
+    public void UpdateMovement()
+    {
+        Vector2 keyInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        velocity = keyInput == Vector2.zero
+            ? Vector2.zero
+            : Vector2.SmoothDamp(velocity, keyInput.normalized, ref velocityVel, moveSmooth);
+        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * velocity.normalized;
+        else velocityVel = Vector2.zero;
+    }
+
+    public void UpdateCardmerang()
+    {
+        const float cooltime = 0.1f;
+        
+        if (shootCooltime + GameManager.deltaTime >= cooltime)
+        {
+            if (!Input.GetMouseButton(0)) return;
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 10f, enemyLayer);
+
+            Vector2 direction = (worldMousePos - (Vector2)transform.position).normalized;
+            if (hits.Length == 0) return;
+            float minDist = Mathf.Infinity;
+            Transform target = null;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                float distance = Vector2.SqrMagnitude((Vector2)hits[i].transform.position - worldMousePos);
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    target = hits[i].transform;
+                }
+            }
+
+            shootCooltime += GameManager.deltaTime;
+
+            while (shootCooltime >= cooltime)
+            {
+                shootCooltime -= cooltime;
+                CardRenderer.Shoot(target, direction);
+            }
+        }
+        else shootCooltime += GameManager.deltaTime;
     }
 
     // Inherit Methods
@@ -547,7 +594,7 @@ public class Player : Carder
 
     public override void Accept(bool resume)
     {
-        cardManager.Ready(() => UpdateStatus(true, resume));
+        UpdateStatus(true, resume);
     }
 
     #region Logging
