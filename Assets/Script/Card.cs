@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using SeolMJ;
 using UnityEngine;
 using UnityEngine.UI;
+
+using SeolMJ;
 
 public class Card : MonoBehaviour
 {
@@ -88,7 +89,7 @@ public class Card : MonoBehaviour
         };
         switch (mode)
         {
-            case CardInitMode.Return: Return(); break;
+            case CardInitMode.Return: Return(new Vector2(Random.Range(-2000f, 2000f), Random.Range(-1000f, -2000f)));  break;
             case CardInitMode.Popup: ReturnAndKill(); break;
             case CardInitMode.Direct:
                 killSpeed = CardManager.instance.cardFadeSpeed * 2f;
@@ -125,18 +126,21 @@ public class Card : MonoBehaviour
         }
     }
 
-    public void Return()
+    public void Return(Vector2 velocity)
     {
         returnPos = CardManager.instance.previewPivot.anchoredPosition;
+        returnVel = velocity;
+        returnVelVel = Vector2.zero;
         state = ReturnState;
     }
 
     private Vector2 returnPos;
-    private Vector2 returnVel;
+    private Vector2 returnVel, returnVelVel;
 
     private void ReturnState()
     {
-        MoveTo(Vector2.SmoothDamp(thisRect.anchoredPosition, returnPos, ref returnVel, 0.1f, Mathf.Infinity, GameManager.deltaTime));
+        MoveTo(Utils.SpringDamp(thisRect.anchoredPosition, returnPos, ref returnVel, ref returnVelVel, 150f, 0.07f, GameManager.deltaTime));
+        //MoveTo(Vector2.SmoothDamp(thisRect.anchoredPosition, returnPos, ref returnVel, 0.1f, Mathf.Infinity, GameManager.deltaTime));
     }
 
     public void Kill()

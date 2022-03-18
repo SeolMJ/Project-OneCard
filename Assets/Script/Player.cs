@@ -60,6 +60,7 @@ public class Player : Carder
     private int lazyCount = 0;
     private Coroutine initCardRoutine;
     private bool cardReady;
+    private Vector2 cardVel;
 
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
@@ -286,8 +287,11 @@ public class Player : Carder
     {
         if (Input.GetMouseButton(0) && selectedCard) // On Card Selected
         {
+            Vector2 final = Vector2.Lerp(selectedCard.thisRect.anchoredPosition, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed);
+            if (!selected) cardVel = Vector2.zero;
+            else cardVel = (final - selectedCard.thisRect.anchoredPosition) / GameManager.deltaTime;
             selected = true;
-            selectedCard.MoveTo(Vector2.Lerp(selectedCard.thisRect.anchoredPosition, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed));
+            selectedCard.MoveTo(final);
             selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
             if (cardManager.previewCard && cardManager.carders.Contains(this) && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
@@ -354,7 +358,7 @@ public class Player : Carder
 
                         cards.Remove(selectedCard);
                         selectedCard.transform.SetParent(cardManager.previewParent);
-                        selectedCard.Return();
+                        selectedCard.Return(cardVel);
                         cardManager.NewCardStack(selectedCard);
                         selectedCard = null;
                         cardManager.UpdateCarder(this, cards.Count);
