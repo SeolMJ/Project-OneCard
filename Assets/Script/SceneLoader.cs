@@ -91,6 +91,8 @@ public class SceneLoader : MonoBehaviour
             yield return null;
         }
 
+        using var _ = new Busy(5);
+
         for (int i = 0; i < activeScenes.Count; i++)
         {
             if (!sceneQueue.Contains(activeScenes[i])) continue;

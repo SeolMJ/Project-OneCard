@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+
 using SeolMJ;
 using static SeolMJ.Utils;
 using static SeolMJ.CardUtils;
@@ -293,7 +294,7 @@ public class Player : Carder
             selected = true;
             selectedCard.MoveTo(final);
             selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
-            if (cardManager.previewCard && cardManager.carders.Contains(this) && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
+            if (cardManager.previewCard && cardManager.carders.Contains(this) && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist || Vector2.Distance(canvasMousePos, selectedCard.thisRect.anchoredPosition) <= cardMinDist) && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
                 if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
                 cardHilight.position = cardManager.previewCard.transform.position;
@@ -316,7 +317,7 @@ public class Player : Carder
                     {
                         if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
                         {
-                            pushed = cardManager.Push(card, true);
+                            pushed = cardManager.Push(card, true, cards.Count < 2);
                             if (!lazySelected) lazyturn = GetTurn();
                             if (pushed)
                             {
@@ -342,7 +343,7 @@ public class Player : Carder
                         }
                         else pushed = false;
                     }
-                    else pushed = cardManager.Push(card);
+                    else pushed = cardManager.Push(card, false, cards.Count < 2);
                     if (pushed)
                     {
                         // Card Pushed (Single)
@@ -561,7 +562,7 @@ public class Player : Carder
             while (shootCooltime >= cooltime)
             {
                 shootCooltime -= cooltime;
-                CardRenderer.Shoot(target, direction);
+                CardRenderer.Shoot(target, Quaternion.Euler(0, 0, UnityEngine.Random.Range(-30f, 30f)) * direction);
             }
         }
         else shootCooltime += GameManager.deltaTime;

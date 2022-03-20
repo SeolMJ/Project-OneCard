@@ -48,7 +48,7 @@ public abstract class NPC : Carder
     IEnumerator OnOnTurn()
     {
         if (C.carders.Count == 0) yield break;
-        yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
+        //yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
         using var _ = new Busy(3);
     Retry:
         Task<int> pushTask = Task.Run(() => Think());
@@ -70,7 +70,7 @@ public abstract class NPC : Carder
         else
         {
             Log("카드 제출 완료");
-            if (!C.Push(info.nowCards[push], true))
+            if (!C.Push(info.nowCards[push], true, info.nowCards.Count < 2))
             {
                 if (C.playing) goto Retry;
                 else yield break;

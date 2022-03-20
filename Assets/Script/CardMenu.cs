@@ -21,17 +21,15 @@ public class CardMenu : MonoBehaviour
 
     [Header("Settings")]
     public AnimationCurve cardHeightCurve;
-    public float delay;
-    public float speed;
-    public float damp;
+    public float delay = 0.2f;
+    public float speed = 150f;
+    public float damp = 0.07f;
 
     private Vector2 mousePos;
+    private Vector2 velocity, velvel;
     private RectTransform selected;
     private bool pressed;
-
     private bool finished;
-
-    private Vector2 velocity, velvel;
 
     void Start()
     {

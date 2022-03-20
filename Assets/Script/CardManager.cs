@@ -200,7 +200,7 @@ public class CardManager : MonoBehaviour
         readying = false;
     }
 
-    public bool Push(CardInfo card, bool lazy = false)
+    public bool Push(CardInfo card, bool lazy = false, bool last = false)
     {
         if (carders.Count < 2)
         {
@@ -260,7 +260,7 @@ public class CardManager : MonoBehaviour
             else turn += opposite ? -1 : 1;
         }
         else if (card.num == CardNum.Q) opposite = !opposite;
-        else if (card.num == CardNum.K) turn += opposite ? 1 : -1;
+        else if (card.num == CardNum.K && !last) turn += opposite ? 1 : -1;
         turn = (turn + carders.Count) % carders.Count;
 
         // End
@@ -434,7 +434,7 @@ public class CardManager : MonoBehaviour
 
     public void NewCardStack(Card card)
     {
-        if (previewCard) previewCard.Kill();
+        if (previewCard) previewCard.ReturnAndKill();
         previewCard = card;
     }
 
