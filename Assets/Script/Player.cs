@@ -99,37 +99,7 @@ public class Player : Carder
     {
         if (GameManager.timeScale == 0) return;
 
-        RectTransform canvas = carding ? cardManager.cardParent : cardManager.attackCardParent;
-        canvasMousePos = new Vector2((Input.mousePosition.x / Screen.width - 0.5f) * canvas.rect.size.x, (Input.mousePosition.y / Screen.height - 0.5f) * canvas.rect.size.y);
-
-        worldMousePos = camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10f));
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (!carding)
-            {
-                PartyField.instance.Open();
-                cardReady = true;
-            }
-        }
-        if (Input.GetKeyUp(KeyCode.Q) && !carding)
-        {
-            PartyField.instance.Close();
-        }
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (cardReady)
-            {
-                PartyField.instance.Party();
-                cardReady = false;
-                if (!carding) Party(2);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            CoinRenderer.Add(camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10)));
-        }
+        UpdateInputs();
 
         if (carding) // Cards
         {
@@ -205,6 +175,40 @@ public class Player : Carder
     }
 
     // Updates
+
+    public void UpdateInputs()
+    {
+        canvasMousePos = new Vector2((Input.mousePosition.x / Screen.width - 0.5f) * 1080f * camera.aspect, (Input.mousePosition.y / Screen.height - 0.5f) * 1080f);
+
+        worldMousePos = camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10f));
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            if (!carding)
+            {
+                PartyField.instance.Open();
+                cardReady = true;
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.Q) && !carding)
+        {
+            PartyField.instance.Close();
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (cardReady)
+            {
+                PartyField.instance.Party();
+                cardReady = false;
+                if (!carding) Party(2);
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            CoinRenderer.Add(camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10)));
+        }
+    }
 
     public void UpdateStatus(bool status, bool fromData = false)
     {
@@ -284,6 +288,19 @@ public class Player : Carder
         cameraTransform.position = Vector3.SmoothDamp(cameraTransform.position, transform.position + cameraOffset, ref cameraVel, cameraSpeed);
     }
 
+    public void UpdateAutoSelection()
+    {
+        List<CardInfo> cardInfos = new List<CardInfo>();
+        foreach (Card card in cards)
+        {
+            cardInfos.Add(card.GetInfo());
+        }
+
+        int result = NPC.Think(in cardInfos, UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f));
+
+        // Incomplete
+    }
+
     public void UpdateSelection()
     {
         if (Input.GetMouseButton(0) && selectedCard) // On Card Selected
@@ -294,7 +311,7 @@ public class Player : Carder
             selected = true;
             selectedCard.MoveTo(final);
             selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
-            if (cardManager.previewCard && cardManager.carders.Contains(this) && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist || Vector2.Distance(canvasMousePos, selectedCard.thisRect.anchoredPosition) <= cardMinDist) && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
+            if (cardManager.previewCard && cardManager.carders.Contains(this) && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist || Vector2.Distance(canvasMousePos, cardManager.previewCard.thisRect.anchoredPosition) <= cardMinDist) && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
                 if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
                 cardHilight.position = cardManager.previewCard.transform.position;
@@ -306,7 +323,7 @@ public class Player : Carder
         {
             cardHilight.gameObject.SetActive(true);
             Vector2 cardPos = selectedCard.thisRect.anchoredPosition;
-            if (cardManager.previewCard && Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist && cardMode == 0) // Card Submit
+            if (cardManager.previewCard && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist || Vector2.Distance(canvasMousePos, cardManager.previewCard.thisRect.anchoredPosition) <= cardMinDist) && cardMode == 0) // Card Submit
             {
                 if (cardManager.carders.Contains(this) && (cardManager.carders[GetTurn()] == this || lazySelected)) // My Turn
                 {

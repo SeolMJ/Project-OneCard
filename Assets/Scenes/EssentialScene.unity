@@ -5668,7 +5668,7 @@ MonoBehaviour:
   cameraOffset: {x: 0, y: 0.735, z: -10}
   cameraSpeed: 0.1
   cardHilight: {fileID: 379504939}
-  cardMinDist: 256
+  cardMinDist: 200
   cardHeightCurve:
     serializedVersion: 2
     m_Curve:

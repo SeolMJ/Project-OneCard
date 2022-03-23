@@ -20,6 +20,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d917539a2b6afad40b3dd189e6c73e2d, type: 2}
   - {fileID: 11400000, guid: 1fdaa64725382dd43a22366e28cb634a, type: 2}
   - {fileID: 11400000, guid: 86fbecf1600f2a945a091ad978461874, type: 2}
+  selectableColor:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    m_PressedColor: {r: 1, g: 0, b: 0, a: 1}
+    m_SelectedColor: {r: 1, g: 0.6273585, b: 0.6273585, a: 1}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 10
   systemLogColor:
     serializedVersion: 2
     rgba: 4294967295
@@ -104,4 +112,5 @@ MonoBehaviour:
   doneSprite: {fileID: 21300000, guid: 92714fe23944dd2418366f19a52677b3, type: 3}
   doneCardSprite: {fileID: 21300000, guid: cba311900bb80f94e8965ade38009f03, type: 3}
   pickCardSprite: {fileID: 21300000, guid: 1121094cb6e2fe84b8f605171b8271c9, type: 3}
+  speachBobble: {fileID: 0}
   gameScenes: 01000000

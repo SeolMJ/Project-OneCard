@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using SeolMJ;
 
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
 
     [Header("References")]
     public ResourceManager resource;
+    public EventSystem eventSystem;
 
     [Header("Loading")]
     public CanvasGroup busyGroup;

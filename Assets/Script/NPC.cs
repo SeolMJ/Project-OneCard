@@ -51,7 +51,7 @@ public abstract class NPC : Carder
         //yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
         using var _ = new Busy(3);
     Retry:
-        Task<int> pushTask = Task.Run(() => Think());
+        Task<int> pushTask = Task.Run(() => Think(in info.nowCards, info.sensitive, info.careful, info.quick));
         while (!pushTask.IsCompleted) yield return null;
         int push = pushTask.Result;
 
@@ -170,34 +170,34 @@ public abstract class NPC : Carder
 
     // AI
 
-    public int Think()
+    public static int Think(in List<CardInfo> cards, float sensitive, float careful, float quick)
     {
         int push = -1;
         List<int> available = new();
 
-        for (int i = 0; i < info.nowCards.Count; i++) if (C.CheckCard(info.nowCards[i])) available.Add(i);
+        for (int i = 0; i < cards.Count; i++) if (C.CheckCard(cards[i])) available.Add(i);
 
         if (available.Count == 0) return -1;
 
-        if (Rand(info.sensitive))
+        if (Rand(sensitive))
         {
             List<int> attackable = new();
 
             for (int i = 0; i < available.Count; i++)
             {
-                CardInfo card = info.nowCards[available[i]];
+                CardInfo card = cards[available[i]];
                 if (CardUtils.Match(card.num, CardNum.Attack)) attackable.Add(available[i]);
             }
             
             if (attackable.Count > 0)
             {
                 List<int> powerfuls = new();
-                if (NextCount() < info.careful * 10f)
+                if (NextCount() < careful * 10f)
                 {
                     int power = 0;
                     for (int i = 0; i < attackable.Count; i++)
                     {
-                        int thisPower = Powerful(info.nowCards[available[i]]);
+                        int thisPower = Powerful(cards[available[i]]);
                         if (thisPower > power)
                         {
                             power = thisPower;
@@ -212,7 +212,7 @@ public abstract class NPC : Carder
                     int power = 6;
                     for (int i = 0; i < attackable.Count; i++)
                     {
-                        int thisPower = Powerful(info.nowCards[available[i]]);
+                        int thisPower = Powerful(cards[available[i]]);
                         if (thisPower < power)
                         {
                             power = thisPower;
@@ -228,20 +228,20 @@ public abstract class NPC : Carder
             }
             else
             {
-                if (NextCount() < info.careful * 10f)
+                if (NextCount() < careful * 10f)
                 {
                     bool queenFirst = Rand(0.5f);
                     
                     if (queenFirst)
                     {
-                        int queen = Contain(CardNum.Q, available);
-                        if (queen == -1) queen = Contain(CardNum.J, available);
+                        int queen = Contain(CardNum.Q, in cards, available);
+                        if (queen == -1) queen = Contain(CardNum.J, in cards, available);
                         if (queen != -1) push = queen;
                     }
                     else
                     {
-                        int jack = Contain(CardNum.J, available);
-                        if (jack == -1) jack = Contain(CardNum.Q, available);
+                        int jack = Contain(CardNum.J, in cards, available);
+                        if (jack == -1) jack = Contain(CardNum.Q, in cards, available);
                         if (jack != -1) push = jack;
                     }
                 }
@@ -251,15 +251,15 @@ public abstract class NPC : Carder
 
         if (push != -1)
         {
-            int king = Contain(info.nowCards[push], available);
+            int king = Contain(cards[push], in cards, available);
             if (king != -1) push = king;
         }
 
         if (push == -1)
         {
-            if (Rand(info.quick))
+            if (Rand(quick))
             {
-                int king = Contain(CardNum.K, available);
+                int king = Contain(CardNum.K, in cards, available);
                 if (king != -1) push = king;
             }
             if (push == -1) push = available[TrashRandom(available.Count)];
@@ -268,17 +268,17 @@ public abstract class NPC : Carder
         return push;
     }
 
-    bool Rand(float percent)
+    static bool Rand(float percent)
     {
         return new System.Random().NextDouble() <= percent;
     }
 
-    int TrashRandom(int max)
+    static int TrashRandom(int max)
     {
         return new System.Random().Next(max);
     }
 
-    int Powerful(CardInfo card)
+    static int Powerful(CardInfo card)
     {
         if (CardUtils.Match(card.num, CardNum.A) && CardUtils.Match(card.type, CardType.Spade)) return 4;
         return card.num switch
@@ -291,29 +291,29 @@ public abstract class NPC : Carder
         };
     }
 
-    int NextCount()
+    static int NextCount()
     {
         if (C.carders.Count == 0) return -1;
         return C.carders[(C.turn + C.carders.Count + 1) % C.carders.Count].CardCount();
     }
 
-    int Contain(CardNum num, List<int> available)
+    static int Contain(CardNum num, in List<CardInfo> cards, List<int> available)
     {
         List<int> cont = new();
         for (int i = 0; i < available.Count; i++)
         {
-            if (CardUtils.Match(info.nowCards[available[i]].num, num)) cont.Add(available[i]);
+            if (CardUtils.Match(cards[available[i]].num, num)) cont.Add(available[i]);
         }
         if (cont.Count == 0) return -1;
         return cont[TrashRandom(cont.Count)];
     }
 
-    int Contain(CardInfo card, List<int> available)
+    static int Contain(CardInfo card, in List<CardInfo> cards, List<int> available)
     {
         List<int> cont = new();
         for (int i = 0; i < available.Count; i++)
         {
-            if (CardUtils.Match(info.nowCards[available[i]].num, card.num) && CardUtils.Match(info.nowCards[available[i]].type, card.type)) cont.Add(available[i]);
+            if (CardUtils.Match(cards[available[i]].num, card.num) && CardUtils.Match(cards[available[i]].type, card.type)) cont.Add(available[i]);
         }
         if (cont.Count == 0) return -1;
         return cont[TrashRandom(cont.Count)];

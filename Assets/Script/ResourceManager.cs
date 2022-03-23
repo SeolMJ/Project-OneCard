@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "ResourceManager", menuName = "Resource Container")]
 public class ResourceManager : ScriptableObject
@@ -13,6 +14,9 @@ public class ResourceManager : ScriptableObject
     public LayerMask carderLayer;
     [Space]
     public List<NPCInfo> npcs;
+
+    [Header("UI")]
+    public ColorBlock selectableColor;
 
     [Header("Logging")]
     public Color32 systemLogColor;
