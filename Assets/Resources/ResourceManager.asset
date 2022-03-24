@@ -22,7 +22,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 86fbecf1600f2a945a091ad978461874, type: 2}
   selectableColor:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    m_HighlightedColor: {r: 0.7216981, g: 0.9248645, b: 1, a: 1}
     m_PressedColor: {r: 1, g: 0, b: 0, a: 1}
     m_SelectedColor: {r: 1, g: 0.6273585, b: 0.6273585, a: 1}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}

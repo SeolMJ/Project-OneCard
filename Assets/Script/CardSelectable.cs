@@ -6,9 +6,10 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 using SeolMJ;
+using UnityEngine.InputSystem.UI;
 
 [SelectionBase]
-public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler, ISubmitHandler
+public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler, IUpdateSelectedHandler
 {
 
     [Header("Reference")]
@@ -16,8 +17,10 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     public Graphic targetGraphic;
 
     [Header("Settings")]
+    public Direction direction = Direction.Down;
     public bool interactable = true;
     public bool selectable = false;
+    public bool immediate = false;
 
     [Header("Navigation")]
     public Navigation navigation;
@@ -28,7 +31,10 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
 
     // Private Variables
     private bool isUpdating;
-    private Color currentColor;
+    private Color targetColor;
+    private Vector2 targetOffset;
+    private Vector2 offset;
+    private float moveSpeed;
 
     // Static Variables
     public static ColorBlock color;
@@ -49,11 +55,11 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     {
         cardSelectables.Add(this);
 
-        currentColor = color.normalColor;
+        targetColor = color.normalColor;
         if (GameManager.instance.eventSystem && GameManager.instance.eventSystem.currentSelectedGameObject == gameObject && selectable)
         {
             isSelected = true;
-            currentColor = color.selectedColor;
+            targetColor = color.selectedColor;
         }
 
         isPointerDown = false;
@@ -68,6 +74,9 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         isPointerInside = false;
         isPointerDown = false;
         isSelected = false;
+
+        targetRect.anchoredPosition -= offset;
+        offset = Vector2.zero;
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -84,14 +93,49 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     {
         if (!isUpdating) return;
 
-        targetGraphic.color = Color.Lerp(targetGraphic.color, currentColor, Time.unscaledDeltaTime * color.fadeDuration);
+        float deltaSpeed = Time.unscaledDeltaTime * color.fadeDuration;
+
+        targetGraphic.color = Color.Lerp(targetGraphic.color, targetColor, deltaSpeed);
+
+        targetRect.anchoredPosition -= offset;
+        offset = Vector2.Lerp(offset, targetOffset, deltaSpeed * moveSpeed);
+        targetRect.anchoredPosition += offset;
     }
 
     // Private Methods
 
     public void ApplyColor()
     {
-        targetGraphic.color = currentColor;
+        targetGraphic.color = targetColor;
+    }
+
+    public void ApplyOffset(float amount, float speed)
+    {
+        amount *= 16f;
+        moveSpeed = speed;
+        targetOffset = direction switch
+        {
+            Direction.Up => new(0, amount),
+            Direction.Down => new(0, -amount),
+            Direction.Left => new(-amount, 0),
+            Direction.Right => new(amount, 0),
+            _ => Vector2.zero
+        };
+    }
+
+    public void ApplyOffsetImmediately(float amount)
+    {
+        amount *= 16f;
+        targetRect.anchoredPosition -= offset;
+        offset = direction switch
+        {
+            Direction.Up => new(0, amount),
+            Direction.Down => new(0, -amount),
+            Direction.Left => new(-amount, 0),
+            Direction.Right => new(amount, 0),
+            _ => Vector2.zero
+        };
+        targetRect.anchoredPosition += offset;
     }
 
     // Events
@@ -127,9 +171,10 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
 
             isPointerDown = true;
 
-            currentColor = color.pressedColor;
+            targetColor = color.pressedColor;
             ApplyColor();
-            OnPress(eventData);
+            ApplyOffset(1f, 2f);
+            if (immediate) OnPress(eventData);
         }
     }
 
@@ -141,9 +186,21 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
             if (selectable && isPointerInside)
             {
                 isSelected = true;
-                currentColor = color.selectedColor;
+                targetColor = color.selectedColor;
+                ApplyOffset(0.5f, 1f);
+                if (!immediate) OnPress(eventData);
             }
-            else currentColor = isPointerInside ? color.highlightedColor : color.normalColor;
+            else if (isPointerInside)
+            {
+                targetColor = color.highlightedColor;
+                ApplyOffset(-0.25f, 1f);
+                if (!immediate) OnPress(eventData);
+            }
+            else
+            {
+                targetColor = color.normalColor;
+                ApplyOffset(0f, 1f);
+            }
 
             isPointerDown = false;
         }
@@ -154,10 +211,11 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         if (!interactable) return;
         if (eventData != null && !(eventData.pointerEnter == null) && !(eventData.pointerEnter.GetComponentInParent<CardSelectable>() != this))
         {
-            if (!isPointerDown)
+            if (!isPointerDown && !isSelected)
             {
-                currentColor = color.highlightedColor;
+                targetColor = color.highlightedColor;
                 ApplyColor();
+                ApplyOffset(-0.25f, 2f);
             }
 
             isPointerInside = true;
@@ -169,7 +227,11 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         if (!interactable) return;
         if (eventData != null && !(eventData.pointerEnter == null) && !(eventData.pointerEnter.GetComponentInParent<CardSelectable>() != this))
         {
-            if (!isPointerDown && !isSelected) currentColor = color.normalColor;
+            if (!isPointerDown && !isSelected)
+            {
+                targetColor = color.normalColor;
+                ApplyOffset(0f, 1f);
+            }
 
             isPointerInside = false;
         }
@@ -179,8 +241,9 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     {
         if (!interactable) return;
 
-        currentColor = color.highlightedColor;
+        targetColor = color.highlightedColor;
         ApplyColor();
+        ApplyOffset(-0.25f, 2f);
 
         if (selectable)
         {
@@ -192,7 +255,8 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     {
         if (!interactable) return;
 
-        currentColor = color.normalColor;
+        targetColor = color.normalColor;
+        ApplyOffset(0f, 1f);
 
         isSelected = false;
     }
@@ -206,15 +270,55 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         }
     }
 
-    public virtual void OnSubmit(BaseEventData eventData)
+    public void OnUpdateSelected(BaseEventData eventData)
     {
-        if (!interactable) return;
 
-        currentColor = color.pressedColor;
-        ApplyColor();
-        currentColor = isSelected ? color.selectedColor : color.highlightedColor;
+        if (eventData.used || !EventSystem.current.sendNavigationEvents)
+        {
 
-        OnPress(eventData);
+            return;
+        }
+
+        //new input system handles submit on release, we can never animate the button down
+        //so, we manually check the submit action and handle ourself
+
+        if (IsActive() && interactable && eventData.currentInputModule is InputSystemUIInputModule module)
+        {
+
+            var submitAction = module.submit?.action;
+
+            if (submitAction != null)
+            {
+                if (submitAction.WasPressedThisFrame())
+                {
+                    targetColor = color.pressedColor;
+                    ApplyColor();
+                    ApplyOffset(1f, 2f);
+                    if (immediate) OnPress(eventData);
+                }
+                else if (submitAction.WasReleasedThisFrame())
+                {
+                    if (selectable && isPointerInside)
+                    {
+                        isSelected = true;
+                        targetColor = color.selectedColor;
+                        ApplyOffset(0.5f, 1f);
+                        if (!immediate) OnPress(eventData);
+                    }
+                    else if (isPointerInside)
+                    {
+                        targetColor = color.highlightedColor;
+                        ApplyOffset(-0.25f, 1f);
+                        if (!immediate) OnPress(eventData);
+                    }
+                    else
+                    {
+                        targetColor = color.normalColor;
+                        ApplyOffset(0f, 1f);
+                    }
+                }
+            }
+        }
     }
 
     public abstract void OnPress(BaseEventData eventData);

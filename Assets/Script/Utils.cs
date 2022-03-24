@@ -595,6 +595,11 @@ namespace SeolMJ
 
     }
 
+    public enum Direction
+    {
+        Up, Down, Left, Right
+    }
+
     public class CountDictionary<TKey> : IDictionary<TKey, int> where TKey : notnull // by Lukince
     {
         public CountDictionary()
