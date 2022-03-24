@@ -23,7 +23,7 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     public bool immediate = false;
 
     [Header("Navigation")]
-    public Navigation navigation;
+    public Navigation navigation = new Navigation() { mode = Navigation.Mode.Automatic };
     public ExplicitNavigation explicitNavigation;
 
     [HideInInspector]
@@ -111,7 +111,7 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
 
     public void ApplyOffset(float amount, float speed)
     {
-        amount *= 16f;
+        amount *= 10f;
         moveSpeed = speed;
         targetOffset = direction switch
         {
@@ -125,7 +125,7 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
 
     public void ApplyOffsetImmediately(float amount)
     {
-        amount *= 16f;
+        amount *= 10f;
         targetRect.anchoredPosition -= offset;
         offset = direction switch
         {
