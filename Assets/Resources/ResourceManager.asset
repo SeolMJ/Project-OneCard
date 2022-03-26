@@ -20,14 +20,23 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d917539a2b6afad40b3dd189e6c73e2d, type: 2}
   - {fileID: 11400000, guid: 1fdaa64725382dd43a22366e28cb634a, type: 2}
   - {fileID: 11400000, guid: 86fbecf1600f2a945a091ad978461874, type: 2}
+  selectableDefaultSprite: {fileID: 21300000, guid: 55c1f89f763080d4e8a948f1b7a0be95, type: 3}
   selectableColor:
-    m_NormalColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_HighlightedColor: {r: 0.81960785, g: 0.81960785, b: 0.81960785, a: 1}
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
     m_PressedColor: {r: 0.75686276, g: 0.22352941, b: 0.16862746, a: 1}
-    m_SelectedColor: {r: 0.81960785, g: 0.81960785, b: 0.81960785, a: 1}
+    m_SelectedColor: {r: 0.92156863, g: 0.92156863, b: 0.92156863, a: 1}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
-    m_ColorMultiplier: 0
+    m_ColorMultiplier: 1
     m_FadeDuration: 10
+  selectableTextColor:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 1}
+    m_HighlightedColor: {r: 0.75686276, g: 0.22352941, b: 0.16862746, a: 1}
+    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_SelectedColor: {r: 0.8679245, g: 0.5813675, b: 0.551869, a: 1}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0
   systemLogColor:
     serializedVersion: 2
     rgba: 4294967295

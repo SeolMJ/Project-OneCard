@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -595,10 +596,20 @@ namespace SeolMJ
 
     }
 
+    #region Enums
+
     public enum Direction
     {
         Up, Down, Left, Right
     }
+
+    #endregion
+
+    #region Structs
+
+    #endregion
+
+    #region Else
 
     public class CountDictionary<TKey> : IDictionary<TKey, int> where TKey : notnull // by Lukince
     {
@@ -663,5 +674,7 @@ namespace SeolMJ
         IEnumerator IEnumerable.GetEnumerator()
             => Collections.GetEnumerator();
     }
+
+    #endregion
 
 }

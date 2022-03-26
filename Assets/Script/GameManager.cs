@@ -35,6 +35,18 @@ public class GameManager : MonoBehaviour
 
     public static ResourceManager Resource => instance.resource;
 
+    public static ResourceManager EditorResource
+    {
+        get
+        {
+            if (!instance)
+            {
+                instance = FindObjectOfType<GameManager>();
+            }
+            return instance.resource;
+        }
+    }
+
     // Save Load
     [HideInInspector] public bool loaded;
     private string dataPath;
@@ -52,7 +64,7 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (instance == null)
+        if (instance == null || instance == this)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);

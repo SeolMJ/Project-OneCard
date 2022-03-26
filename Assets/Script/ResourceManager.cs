@@ -16,7 +16,9 @@ public class ResourceManager : ScriptableObject
     public List<NPCInfo> npcs;
 
     [Header("UI")]
+    public Sprite selectableDefaultSprite;
     public ColorBlock selectableColor;
+    public ColorBlock selectableTextColor;
 
     [Header("Logging")]
     public Color32 systemLogColor;
