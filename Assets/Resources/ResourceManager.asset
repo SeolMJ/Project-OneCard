@@ -37,6 +37,7 @@ MonoBehaviour:
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0
+  selectableScale: {x: 1, y: 1.05, z: 0.97, w: 0.98}
   systemLogColor:
     serializedVersion: 2
     rgba: 4294967295

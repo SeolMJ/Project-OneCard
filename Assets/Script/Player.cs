@@ -233,30 +233,6 @@ public class Player : Carder
         }
     }
 
-    /*
-    public void UpdateAttackCard()
-    {
-        if (attackCards.Count == 0) return;
-        attackCardOpened = mousePos.y <= -320f;
-        float bottom = -cardManager.attackCardParent.sizeDelta.y / 2f + 32f;
-        float deltaTime = GameManager.deltaTime * cardManager.cardSpeed;
-        for (int i = 0; i < attackCards.Count; i++)
-        {
-            float index = attackCards.Count == 1 ? 0f : ((float)i / (attackCards.Count - 1) - 0.5f);
-            attackCards[i].thisRect.anchoredPosition = Vector2.Lerp(attackCards[i].thisRect.anchoredPosition
-                , attackCardOpened
-                ? new Vector2(960f * index, bottom + index * index * -280f)
-                : new Vector2(0, bottom - 240f)
-                , deltaTime * Mathf.Sqrt(Mathf.Sqrt(i + 1)));
-            attackCards[i].transform.localRotation = Quaternion.Lerp(attackCards[i].transform.localRotation
-                , Quaternion.AngleAxis(attackCardOpened
-                ? index * -30f
-                : 0
-                , Vector3.forward), deltaTime);
-        }
-    }
-    */
-
     public void UpdateMode()
     {
         if (Input.mouseScrollDelta.y != 0)
@@ -628,6 +604,34 @@ public class Player : Carder
         logPreset ??= new("Player", GameManager.Resource.playerLogColor);
         Log4u.Log(logPreset.Value, content, state);
     }
+
+    #endregion
+
+    #region Trash
+
+    /*
+    public void UpdateAttackCard()
+    {
+        if (attackCards.Count == 0) return;
+        attackCardOpened = mousePos.y <= -320f;
+        float bottom = -cardManager.attackCardParent.sizeDelta.y / 2f + 32f;
+        float deltaTime = GameManager.deltaTime * cardManager.cardSpeed;
+        for (int i = 0; i < attackCards.Count; i++)
+        {
+            float index = attackCards.Count == 1 ? 0f : ((float)i / (attackCards.Count - 1) - 0.5f);
+            attackCards[i].thisRect.anchoredPosition = Vector2.Lerp(attackCards[i].thisRect.anchoredPosition
+                , attackCardOpened
+                ? new Vector2(960f * index, bottom + index * index * -280f)
+                : new Vector2(0, bottom - 240f)
+                , deltaTime * Mathf.Sqrt(Mathf.Sqrt(i + 1)));
+            attackCards[i].transform.localRotation = Quaternion.Lerp(attackCards[i].transform.localRotation
+                , Quaternion.AngleAxis(attackCardOpened
+                ? index * -30f
+                : 0
+                , Vector3.forward), deltaTime);
+        }
+    }
+    */
 
     #endregion
 

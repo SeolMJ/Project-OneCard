@@ -19,6 +19,7 @@ public class ResourceManager : ScriptableObject
     public Sprite selectableDefaultSprite;
     public ColorBlock selectableColor;
     public ColorBlock selectableTextColor;
+    public Vector4 selectableScale;
 
     [Header("Logging")]
     public Color32 systemLogColor;
