@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 using SeolMJ;
 
-public class CardMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class CardMenu : MonoBehaviour
 {
 
     [Header("References")]
@@ -31,7 +31,6 @@ public class CardMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     private RectTransform selected;
     private bool pressed;
     private bool finished;
-    private bool focused;
 
     void Start()
     {
@@ -59,15 +58,12 @@ public class CardMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Camera camera = Camera.main;
         if (!camera) return;
 
-        if (focused || pressed)
-        {
-            mousePos = new Vector2((Input.mousePosition.x / Screen.width - 0.5f) * canvas.sizeDelta.x, (Input.mousePosition.y / Screen.height - 0.5f) * canvas.sizeDelta.y);
+        mousePos = new Vector2((Input.mousePosition.x / Screen.width - 0.5f) * canvas.sizeDelta.x, (Input.mousePosition.y / Screen.height - 0.5f) * canvas.sizeDelta.y);
 
-            if (selected && Input.GetMouseButtonDown(0))
-            {
-                pressed = true;
-                select.gameObject.SetActive(false);
-            }
+        if (selected && Input.GetMouseButtonDown(0))
+        {
+            pressed = true;
+            select.gameObject.SetActive(false);
         }
 
         if (pressed && Input.GetMouseButtonUp(0))
@@ -153,7 +149,7 @@ public class CardMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             cards[i].localRotation = Quaternion.LerpUnclamped(cards[i].localRotation
                 , Quaternion.Euler(0, 0, Mathf.Lerp(index * -30f, offset * -10f, mouseHeight)), deltaTime);
         }
-        if (pressed || !focused) return;
+        if (pressed) return;
         selected = cards[closest];
         select.SetPositionAndRotation(selected.position, selected.rotation);
         if (selected.GetSiblingIndex() != parent.childCount - 2) selected.SetSiblingIndex(parent.childCount - 2);
@@ -168,17 +164,6 @@ public class CardMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         yield return new WaitForSecondsRealtime(delay);
         events[index].Invoke();
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        focused = true;
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        focused = false;
-        if (!pressed) select.gameObject.SetActive(false);
     }
 
 }

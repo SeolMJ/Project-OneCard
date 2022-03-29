@@ -4832,7 +4832,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1039820437
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4969,7 +4969,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   image: {fileID: 1039820438}
-  threshold: 0.5
+  threshold: 0.9
 --- !u!1 &1082338108
 GameObject:
   m_ObjectHideFlags: 0
@@ -21534,12 +21534,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1082338108}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1b764e8e7987fd448e6356e946cc27a, type: 3}
+  m_Script: {fileID: 11500000, guid: 07cfd0dd472879e44b3ac9f96af65807, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textures:
-  - {fileID: 2800000, guid: 8693fc0d0f03d3f499404d8bd9b0e2ea, type: 3}
-  - {fileID: 2800000, guid: 8693fc0d0f03d3f499404d8bd9b0e2ea, type: 3}
+  textures: []
   hotspot: {x: 0, y: 0}
 --- !u!1 &1107529549
 GameObject:

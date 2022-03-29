@@ -73,6 +73,11 @@ public class SceneLoader : MonoBehaviour
         activeScenes.Add(index);
     }
 
+    public static int GetScene()
+    {
+        return SceneManager.GetActiveScene().buildIndex;
+    }
+
     const float fillSpeed = 5f;
 
     IEnumerator DoLoad()

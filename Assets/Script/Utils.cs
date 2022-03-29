@@ -234,6 +234,16 @@ namespace SeolMJ
               .ToDictionary(item => item.Key, item => item.Value);
 
         }
+
+        public static bool Contains<T>(this T[] array, T item)
+        {
+            int count = array.Length;
+            for (int i = 0; i < count; i++)
+            {
+                if (array[i].Equals(item)) return true;
+            }
+            return false;
+        }
         #endregion
 
         #region Compute

@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 using SeolMJ;
 
 using static SeolMJ.Log4u;
+using System.Collections;
+using UnityEditor;
 
 public class GameManager : MonoBehaviour
 {
