@@ -16,13 +16,18 @@ public class SceneLoader : MonoBehaviour
     public Image maskImage;
 
     // Statics
-    //private static bool loading;
+    public static bool Loading { get; private set; }
+    public static bool Running { get; private set; }
     private static List<int> activeScenes = new();
     private static List<int> sceneQueue = new();
+    private static List<Action> reservedScene = new();
     private static GameObject prefab;
+
+    public static bool Reserved => reservedScene.Count > 0;
 
     void Awake()
     {
+        if (Loading) Destroy(gameObject);
         DontDestroyOnLoad(gameObject);
         StartCoroutine(DoLoad());
     }
@@ -37,12 +42,20 @@ public class SceneLoader : MonoBehaviour
 
     }
 
-    public static void Load(params int[] scenes) => Load(new List<int>(scenes));
+    public static void Load(params int[] scenes)
+    {
+        if (Loading)
+        {
+            if (!Reserved) Reserve(() => Load(new List<int>(scenes)));
+        }
+        else Load(new List<int>(scenes));
+    }
 
     public static void Load(List<int> scenes)
     {
         if (instance == null)
         {
+            Running = true;
             sceneQueue = scenes;
             if (!prefab) prefab = Resources.Load<GameObject>("SceneLoader");
             Instantiate(prefab);
@@ -54,17 +67,34 @@ public class SceneLoader : MonoBehaviour
         }
     }
 
-    public static void LoadLevel(int scene)
+    public async static void LoadLevel(int scene)
     {
+        while (GameManager.instance == null) await System.Threading.Tasks.Task.Delay((int)(Time.unscaledDeltaTime * 1000f));
         List<int> scenes = new(GameManager.Resource.gameScenes);
         scenes.Add(scene);
-        Load(scenes);
+        if (Loading)
+        {
+            if (!Reserved) Reserve(() => Load(scenes));
+        }
+        else Load(scenes);
     }
 
     public static void Return()
     {
-        SetScene(0);
         SceneManager.LoadScene(0, LoadSceneMode.Single);
+        SetScene(0);
+
+        if (reservedScene.Count > 0)
+        {
+            reservedScene[0].Invoke();
+            reservedScene.RemoveAt(0);
+            Log("Chain Loading");
+        }
+    }
+
+    public static void Reserve(Action action)
+    {
+        reservedScene.Add(action);
     }
 
     public static void SetScene(int index)
@@ -82,7 +112,8 @@ public class SceneLoader : MonoBehaviour
 
     IEnumerator DoLoad()
     {
-        //loading = true;
+        Running = true;
+        Loading = true;
 
         Log($"Loading {sceneQueue.Count} Scenes ({activeScenes.Count} Active)", 1);
 
@@ -106,6 +137,8 @@ public class SceneLoader : MonoBehaviour
             activeScenes.RemoveAt(i);
             i--;
         }
+
+        sceneQueue.Distinct();
 
         int[] oldActiveScenes = activeScenes.ToArray();
 
@@ -134,11 +167,19 @@ public class SceneLoader : MonoBehaviour
             yield return null;
         }
 
-        //loading = false;
+        Loading = false;
+        Running = false;
 
         GameManager.timeScale = 1f;
 
         Log("Scene Loaded", 3);
+
+        if (reservedScene.Count > 0)
+        {
+            reservedScene[0].Invoke();
+            reservedScene.RemoveAt(0);
+            Log("Chain Loading");
+        }
 
         Destroy(gameObject);
     }
@@ -149,7 +190,7 @@ public class SceneLoader : MonoBehaviour
 
     public static void Log(string content, byte state = 0)
     {
-        logPreset ??= new("Scene", GameManager.Resource.sceneLogColor);
+        logPreset ??= new("Scene", GameManager.instance ? GameManager.Resource.sceneLogColor : new Color32(167, 251, 255, 255));
         Log4u.Log(logPreset.Value, content, state);
     }
 

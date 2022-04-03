@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Cinemachine;
 
 using SeolMJ;
 using static SeolMJ.Utils;
@@ -16,6 +17,7 @@ public class Player : Carder
     [Header("Camera")]
     public new Camera camera;
     public Transform cameraTransform;
+    public CinemachineBrain cameraBrain;
     public Vector3 cameraOffset;
     public float cameraSpeed;
 
@@ -26,8 +28,12 @@ public class Player : Carder
     public RectTransform multiSelectRect;
 
     [Header("Movement")]
-    public new Rigidbody2D rigidbody;
+    public new Rigidbody rigidbody;
     public float moveSpeed;
+    public float runSpeed;
+    public float jumpSpeed;
+    public float drag;
+    public LayerMask groundLayer;
     public float moveSmooth;
 
     [Header("Mode")]
@@ -47,7 +53,7 @@ public class Player : Carder
     // Global
     [HideInInspector] public bool carding;
     private Vector2 canvasMousePos;
-    private Vector2 worldMousePos;
+    private Vector3 worldMousePos;
 
     // Camera
     private Vector3 cameraVel;
@@ -65,6 +71,7 @@ public class Player : Carder
 
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
+    private Vector2 keyInput, keyInputVel;
 
     // Cardmerang
     private float shootCooltime;
@@ -78,7 +85,7 @@ public class Player : Carder
     {
         if (!G)
         {
-            SceneLoader.Return();
+            if (!SceneLoader.Reserved && !SceneLoader.Running) SceneLoader.Return();
             return;
         }
 
@@ -122,14 +129,9 @@ public class Player : Carder
             UpdateMovement();
             UpdateCardmerang();
             // UpdateAttackCard();
+            Physics.Simulate(GameManager.deltaTime);
+            cameraBrain.ManualUpdate();
         }
-    }
-
-    void LateUpdate()
-    {
-        Physics2D.Simulate(GameManager.deltaTime);
-
-        UpdateCamera();
     }
 
     public void AddCard(CardInfo card)
@@ -286,7 +288,7 @@ public class Player : Carder
             else cardVel = (final - selectedCard.thisRect.anchoredPosition) / GameManager.deltaTime;
             selected = true;
             selectedCard.MoveTo(final);
-            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.rotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
+            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.localRotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
             if (cardManager.previewCard && cardManager.carders.Contains(this) && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist || Vector2.Distance(canvasMousePos, cardManager.previewCard.thisRect.anchoredPosition) <= cardMinDist) && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
             {
                 if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
@@ -516,14 +518,34 @@ public class Player : Carder
         modeTextRect.anchoredPosition = Vector2.Lerp(modeTextRect.anchoredPosition, pos, GameManager.deltaTime * modeSpeed.y);
     }
 
-    public void UpdateMovement()
+    public void UpdateMovementOld()
     {
         Vector2 keyInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         velocity = keyInput == Vector2.zero
             ? Vector2.zero
             : Vector2.SmoothDamp(velocity, keyInput.normalized, ref velocityVel, moveSmooth);
-        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * velocity.normalized;
+        Vector2 normalizedVelocity = velocity.normalized;
+        if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * new Vector3(normalizedVelocity.x, 0, normalizedVelocity.y);
         else velocityVel = Vector2.zero;
+    }
+
+    public void UpdateMovement()
+    {
+        // Inputs
+        keyInput = Vector2.SmoothDamp(keyInput, new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")), ref keyInputVel, moveSmooth);
+        bool Shift = Input.GetKey(KeyCode.LeftShift);
+
+        // Rotation
+        //transform.eulerAngles = new Vector3(0f, cameraTransform.eulerAngles.y, 0f); //Quaternion.LookRotation((transform.position - new Vector3(cameraTransform.position.x, transform.position.y, cameraTransform.position.z)).normalized);
+
+        // Force
+        float RealDrag = 1 - drag * Time.deltaTime;
+        rigidbody.velocity = new Vector3(rigidbody.velocity.x * RealDrag, rigidbody.velocity.y, rigidbody.velocity.z * RealDrag);
+        rigidbody.velocity += transform.rotation * ((Shift ? runSpeed : moveSpeed) * Time.deltaTime * new Vector3(keyInput.x, 0, keyInput.y));
+
+        // Jump
+        bool Grounded = Physics.CheckSphere(transform.position + transform.up * (0.3f - Physics.defaultContactOffset), 0.3f, groundLayer);
+        if (Grounded && Input.GetKey(KeyCode.Space)) rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpSpeed, rigidbody.velocity.z);
     }
 
     public void UpdateCardmerang()
@@ -534,15 +556,15 @@ public class Player : Carder
         {
             if (!Input.GetMouseButton(0)) return;
 
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 10f, enemyLayer);
+            Collider[] hits = Physics.OverlapSphere(transform.position, 10f, enemyLayer);
 
-            Vector2 direction = (worldMousePos - (Vector2)transform.position).normalized;
+            Vector3 direction = (worldMousePos - transform.position).normalized;
             if (hits.Length == 0) return;
             float minDist = Mathf.Infinity;
             Transform target = null;
             for (int i = 0; i < hits.Length; i++)
             {
-                float distance = Vector2.SqrMagnitude((Vector2)hits[i].transform.position - worldMousePos);
+                float distance = Vector3.SqrMagnitude(hits[i].transform.position - worldMousePos);
                 if (distance < minDist)
                 {
                     minDist = distance;
@@ -555,7 +577,7 @@ public class Player : Carder
             while (shootCooltime >= cooltime)
             {
                 shootCooltime -= cooltime;
-                CardRenderer.Shoot(target, Quaternion.Euler(0, 0, UnityEngine.Random.Range(-30f, 30f)) * direction);
+                CardRenderer.Shoot(target, Quaternion.Euler(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-30f, 30f)) * direction);
             }
         }
         else shootCooltime += GameManager.deltaTime;

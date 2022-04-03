@@ -370,6 +370,7 @@ public class CardManager : MonoBehaviour
             if (!card) return GetCard(info, parent, mode);
             card.transform.SetParent(parent, false);
             card.transform.SetAsLastSibling();
+            card.transform.localRotation = Quaternion.identity;
             card.gameObject.SetActive(true);
             card.Init(info, mode);
             return card;

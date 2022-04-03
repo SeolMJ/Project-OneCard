@@ -336,6 +336,84 @@ MonoBehaviour:
         m_FixedHeight: 0
         m_StretchWidth: 1
         m_StretchHeight: 0
+    - prefix: )
+      name: Powerful Header (centered)
+      font: {fileID: 12800000, guid: 060b8e51a869a944ead0dbca3aecd0f0, type: 3}
+      fontSize: 12
+      fontAlignment: 4
+      fontStyle: 0
+      modes:
+      - fontColour: {r: 1, g: 1, b: 1, a: 1}
+        backgroundColour: {r: 0.38568, g: 0.6335747, b: 0.764151, a: 1}
+      - fontColour: {r: 1, g: 1, b: 1, a: 1}
+        backgroundColour: {r: 0.007843138, g: 0.45882353, b: 0.22352941, a: 1}
+      style:
+        m_Name: Powerful Header (centered)
+        m_Normal:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 1, g: 1, b: 1, a: 1}
+        m_Hover:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_Active:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_Focused:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_OnNormal:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_OnHover:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_OnActive:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_OnFocused:
+          m_Background: {fileID: 0}
+          m_ScaledBackgrounds: []
+          m_TextColor: {r: 0, g: 0, b: 0, a: 1}
+        m_Border:
+          m_Left: 0
+          m_Right: 0
+          m_Top: 0
+          m_Bottom: 0
+        m_Margin:
+          m_Left: 0
+          m_Right: 0
+          m_Top: 0
+          m_Bottom: 0
+        m_Padding:
+          m_Left: 0
+          m_Right: 0
+          m_Top: 0
+          m_Bottom: 0
+        m_Overflow:
+          m_Left: 0
+          m_Right: 0
+          m_Top: 0
+          m_Bottom: 0
+        m_Font: {fileID: 12800000, guid: 060b8e51a869a944ead0dbca3aecd0f0, type: 3}
+        m_FontSize: 12
+        m_FontStyle: 0
+        m_Alignment: 4
+        m_WordWrap: 0
+        m_RichText: 1
+        m_TextClipping: 0
+        m_ImagePosition: 0
+        m_ContentOffset: {x: 0, y: 0}
+        m_FixedWidth: 0
+        m_FixedHeight: 0
+        m_StretchWidth: 1
+        m_StretchHeight: 0
   componentData:
     showMissingScriptsWarning: 1
     unityComponents:
@@ -577,21 +655,39 @@ MonoBehaviour:
       shown: 0
     - name: WindZone
       shown: 0
+    - name: Capture
+      shown: 0
     - name: Card
+      shown: 0
+    - name: CardButton
       shown: 0
     - name: Carder
       shown: 0
     - name: CardManager
       shown: 0
+    - name: CardMenu
+      shown: 0
+    - name: CardRenderer
+      shown: 0
+    - name: CardSelectable
+      shown: 0
     - name: ChatElement
       shown: 0
     - name: ChatManager
       shown: 0
+    - name: CoinRenderer
+      shown: 0
     - name: Computer
+      shown: 0
+    - name: CursorManager
       shown: 0
     - name: DialogueManager
       shown: 0
     - name: GameManager
+      shown: 0
+    - name: ImageColliderEdit
+      shown: 0
+    - name: LevelManager
       shown: 0
     - name: LoadingCard
       shown: 0
@@ -602,6 +698,8 @@ MonoBehaviour:
     - name: NormalNPC
       shown: 0
     - name: NPC
+      shown: 0
+    - name: PartyField
       shown: 0
     - name: PauseButton
       shown: 0
@@ -658,6 +756,30 @@ MonoBehaviour:
     - name: CinemachinePixelPerfect
       shown: 0
     - name: PixelPerfectCamera
+      shown: 0
+    - name: PlayerInput
+      shown: 0
+    - name: PlayerInputManager
+      shown: 0
+    - name: TrackedPoseDriver
+      shown: 0
+    - name: BaseInputOverride
+      shown: 0
+    - name: InputSystemUIInputModule
+      shown: 0
+    - name: MultiplayerEventSystem
+      shown: 0
+    - name: TrackedDeviceRaycaster
+      shown: 0
+    - name: VirtualMouseInput
+      shown: 0
+    - name: OnScreenButton
+      shown: 0
+    - name: OnScreenControl
+      shown: 0
+    - name: OnScreenStick
+      shown: 0
+    - name: TouchSimulation
       shown: 0
     - name: Button
       shown: 0
@@ -776,6 +898,12 @@ MonoBehaviour:
     - name: UniversalAdditionalCameraData
       shown: 0
     - name: UniversalAdditionalLightData
+      shown: 0
+    - name: ExampleScript
+      shown: 0
+    - name: ExampleScript2
+      shown: 0
+    - name: ExampleScriptWithIcon
       shown: 0
     - name: PlaymodeTestsController
       shown: 0
@@ -899,16 +1027,44 @@ MonoBehaviour:
       shown: 0
     - name: SpriteSkinManagerInternal
       shown: 0
+    - name: GraphyDebugger
+      shown: 0
+    - name: GraphyManager
+      shown: 0
+    - name: G_Singleton`1
+      shown: 0
+    - name: G_RamGraph
+      shown: 0
+    - name: G_RamManager
+      shown: 0
+    - name: G_RamMonitor
+      shown: 0
+    - name: G_RamText
+      shown: 0
+    - name: G_Graph
+      shown: 0
+    - name: G_FpsGraph
+      shown: 0
+    - name: G_FpsManager
+      shown: 0
+    - name: G_FpsMonitor
+      shown: 0
+    - name: G_FpsText
+      shown: 0
+    - name: G_AudioGraph
+      shown: 0
+    - name: G_AudioManager
+      shown: 0
+    - name: G_AudioMonitor
+      shown: 0
+    - name: G_AudioText
+      shown: 0
+    - name: G_AdvancedData
+      shown: 0
     - name: SpriteShapeGeometryCache
       shown: 0
     - name: SpriteShapeController
       shown: 0
-    - name: ExampleScript
-      shown: 0
-    - name: ExampleScript2
-      shown: 0
-    - name: ExampleScriptWithIcon
-      shown: 0
     customComponents: []
-    unityVersion: 2021.2.9f1
+    unityVersion: 2021.2.15f1
     isDirty: 0

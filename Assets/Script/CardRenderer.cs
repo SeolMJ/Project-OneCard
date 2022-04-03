@@ -31,7 +31,7 @@ public class CardRenderer : MonoBehaviour
     public static float deltaAngularSpeed;
     public static float deltaRotateSpeed;
     public static float angle;
-    public static Vector2 playerPos;
+    public static Vector3 playerPos;
     public static LayerMask enemyLayer;
 
     public static System.Random random;
@@ -57,7 +57,7 @@ public class CardRenderer : MonoBehaviour
 
         count = cards.Count;
         cardCount = 0;
-        playerPos = (Vector2)Player.instance.transform.position + new Vector2(0, 0.735f);
+        playerPos = Player.instance.transform.position + new Vector3(0, 0.735f, 0);
         if (count == 0) return;
 
         deltaTime = GameManager.deltaTime;
@@ -90,7 +90,7 @@ public class CardRenderer : MonoBehaviour
         inactiveCards.Push(card);
     }
 
-    public static void Shoot(Transform target, Vector2 direction)
+    public static void Shoot(Transform target, Vector3 direction)
     {
         if (cards.Count > 1022) cards.RemoveAt(0);
         CardEntity card = inactiveCards.Count == 0 ? new() : inactiveCards.Pop();
@@ -183,8 +183,8 @@ public class FlowCard
 public class CardEntity
 {
     // Transform
-    public Vector2 position;
-    public Vector2 velocity;
+    public Vector3 position;
+    public Vector3 velocity;
     public Quaternion rotation;
 
     // State
@@ -194,24 +194,23 @@ public class CardEntity
     // Target
     public Transform target;
 
-    public void Init(Vector2 position, Vector2 velocity, Transform target)
+    public void Init(Vector3 position, Vector3 velocity, Transform target)
     {
         this.position = position;
         this.target = target;
         this.velocity = velocity;
-        rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
+        rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
         state = Shoot;
     }
 
     public bool Shoot()
     {
-        Vector2 offset = ((Vector2)target.position - position).normalized;
-        velocity = Vector2.MoveTowards(velocity, offset, CardRenderer.deltaAngularSpeed);
-        Vector2 prevPos = position;
+        Vector3 offset = (target.position - position).normalized;
+        velocity = Vector3.MoveTowards(velocity, offset, CardRenderer.deltaAngularSpeed);
+        Vector3 prevPos = position;
         position += velocity * CardRenderer.deltaMoveSpeed;
-        rotation *= Quaternion.Euler(0, 0, CardRenderer.deltaRotateSpeed);
-        RaycastHit2D hit = Physics2D.Linecast(prevPos, position, CardRenderer.enemyLayer);
-        if (hit.collider)
+        rotation *= Quaternion.Euler(0, CardRenderer.deltaRotateSpeed, 0);
+        if (Physics.Linecast(prevPos, position, out RaycastHit hit, CardRenderer.enemyLayer))
         {
             state = Return;
             velocity *= 0.5f;
@@ -221,10 +220,10 @@ public class CardEntity
 
     public bool Return()
     {
-        Vector2 offset = CardRenderer.playerPos - position;
-        velocity = Vector2.MoveTowards(velocity, offset.normalized, CardRenderer.deltaAngularSpeed);
+        Vector3 offset = CardRenderer.playerPos - position;
+        velocity = Vector3.MoveTowards(velocity, offset.normalized, CardRenderer.deltaAngularSpeed);
         position += velocity * CardRenderer.deltaMoveSpeed;
-        rotation *= Quaternion.Euler(0, 0, CardRenderer.deltaRotateSpeed);
+        rotation *= Quaternion.Euler(0, CardRenderer.deltaRotateSpeed, 0);
         if (offset.magnitude < 0.5f)
         {
             Final();

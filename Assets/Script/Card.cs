@@ -59,7 +59,7 @@ public class Card : MonoBehaviour
         transform.localScale = Vector3.one;
         active = true;
         state = null;
-        transform.rotation = Quaternion.identity;
+        transform.localRotation = Quaternion.identity;
         SelectSymbol(mode);
     }
 
@@ -191,7 +191,7 @@ public class Card : MonoBehaviour
 
     public void RotateTo(Quaternion rotation)
     {
-        transform.rotation = rotation;
+        transform.localRotation = rotation;
     }
 
     public CardInfo GetInfo()

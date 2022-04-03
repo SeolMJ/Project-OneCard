@@ -48,7 +48,7 @@ public abstract class NPC : Carder
     IEnumerator OnOnTurn()
     {
         if (C.carders.Count == 0) yield break;
-        //yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
+        yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
         using var _ = new Busy(3);
     Retry:
         Task<int> pushTask = Task.Run(() => Think(in info.nowCards, info.sensitive, info.careful, info.quick));

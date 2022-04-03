@@ -9,10 +9,11 @@ public class PartyField : MonoBehaviour
 
     public static PartyField instance;
 
-    public new SpriteRenderer renderer;
+    public Material material;
 
     private float alpha;
     private float scale;
+    private Color color = Color.white;
 
     void Awake()
     {
@@ -21,7 +22,8 @@ public class PartyField : MonoBehaviour
 
     void Update()
     {
-        renderer.color = Utils.OnlyAlpha(renderer.color, Mathf.LerpUnclamped(renderer.color.a, alpha, Time.deltaTime * 5f));
+        color = Utils.OnlyAlpha(color, Mathf.LerpUnclamped(color.a, alpha, Time.deltaTime * 5f));
+        material.SetColor("_OverrideColor", color);
         transform.localScale = Utils.ToVector3(Mathf.LerpUnclamped(transform.localScale.x, scale, Time.deltaTime * 5f));
     }
 
