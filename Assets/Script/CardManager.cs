@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +6,6 @@ using UnityEngine.UI;
 using TMPro;
 using SeolMJ;
 using static SeolMJ.CardUtils;
-using System.Threading.Tasks;
 
 public class CardManager : MonoBehaviour
 {
@@ -418,7 +417,7 @@ public class CardManager : MonoBehaviour
     {
         int index = carders.IndexOf(carder);
         if (index == -1) return;
-        Vector2 position = carderRects[index].position;
+        Vector3 position = carderRects[index].position;
         MiniCardRenderer.Add(position, previewPivot.position, 0f);
     }
 
@@ -426,7 +425,7 @@ public class CardManager : MonoBehaviour
     {
         int index = carders.IndexOf(carder);
         if (index == -1) return;
-        Vector2 position = carderRects[index].position;
+        Vector3 position = carderRects[index].position;
         for (int i = 0; i < count; i++)
         {
             MiniCardRenderer.Add(position, previewPivot.position, i * -0.1f);
@@ -544,6 +543,42 @@ public struct CardInfo
 
     public override bool Equals(object obj) => base.Equals(obj);
     public override int GetHashCode() => base.GetHashCode();
+    public override string ToString() => $"[{TypeToString()}|{NumToString()}]";
+
+    public char TypeToString() =>
+        type switch
+        {
+            CardType.None => '_',
+            CardType.Diamond => '◆',
+            CardType.Spade => '♠',
+            CardType.Heart => '❤',
+            CardType.Clover => '♣',
+            CardType.Color => '$',
+            CardType.Black => '%',
+            _ => '_'
+        };
+
+    public char NumToString() =>
+        num switch
+        {
+            CardNum.None => '_',
+            CardNum.A => 'A',
+            CardNum.Two => '2',
+            CardNum.Three => '3',
+            CardNum.Four => '4',
+            CardNum.Five => '5',
+            CardNum.Six => '6',
+            CardNum.Seven => '7',
+            CardNum.Eight => '8',
+            CardNum.Nine => '9',
+            CardNum.Ten => 'X',
+            CardNum.J => 'J',
+            CardNum.Q => 'Q',
+            CardNum.K => 'K',
+            CardNum.ColorJoker => 'C',
+            CardNum.BlackJoker => 'B',
+            _ => '_',
+        };
 
 }
 

@@ -5695,7 +5695,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.8156863, g: 0.6683066, b: 0.652549, a: 0}
+  m_BackGroundColor: {r: 0.9, g: 0.98800004, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -5789,7 +5789,6 @@ GameObject:
   - component: {fileID: 533981325}
   - component: {fileID: 533981324}
   - component: {fileID: 533981326}
-  - component: {fileID: 533981327}
   m_Layer: 6
   m_Name: _ Player
   m_TagString: Untagged
@@ -5882,6 +5881,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1241611740}
+  - {fileID: 1154988621}
   - {fileID: 1999102493}
   - {fileID: 681297932}
   m_Father: {fileID: 0}
@@ -5902,20 +5902,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 2
---- !u!65 &533981327
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 533981323}
-  m_Material: {fileID: 13400000, guid: 58279c999b91eea47a58e6988b46c118, type: 2}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.86, y: 1.21, z: 0.05}
-  m_Center: {x: 0, y: 0.603, z: 0}
+  m_CollisionDetection: 1
 --- !u!1 &550084937
 GameObject:
   m_ObjectHideFlags: 0
@@ -6234,7 +6221,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 533981325}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &681297933
 MonoBehaviour:
@@ -23230,6 +23217,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1084670656}
   m_CullTransparentMesh: 1
+--- !u!1 &1154988620
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1154988621}
+  - component: {fileID: 1154988622}
+  m_Layer: 6
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1154988621
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154988620}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.603, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 533981325}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1154988622
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154988620}
+  m_Material: {fileID: 13400000, guid: 58279c999b91eea47a58e6988b46c118, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 0943bb38afcd51044bfb04cf5b38d5aa, type: 2}
 --- !u!1 &1211680360
 GameObject:
   m_ObjectHideFlags: 0
@@ -29015,7 +29048,7 @@ MonoBehaviour:
   CameraDistance: 7
   CameraCollisionFilter:
     serializedVersion: 2
-    m_Bits: 129
+    m_Bits: 0
   IgnoreTag: 
   CameraRadius: 0.2
   DampingIntoCollision: 0
@@ -29725,6 +29758,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1889757031}
   - component: {fileID: 1889757030}
+  - component: {fileID: 1889757032}
   m_Layer: 0
   m_Name: _ Camera Controller
   m_TagString: Untagged
@@ -29787,6 +29821,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1889757032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889757029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 449ef5ebbe24720439ec31d15f7b6f3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FocusTracksTarget: 0
+  m_FocusTracking: 2
+  m_FocusTarget: {fileID: 0}
+  m_FocusOffset: 0
+  m_Profile: {fileID: 11400000, guid: 321e9e53dbe48874f80971bac20e8ee2, type: 2}
 --- !u!1 &1938251360
 GameObject:
   m_ObjectHideFlags: 0
@@ -46498,7 +46549,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 533981325}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &1999102495
 MonoBehaviour:

@@ -16,8 +16,8 @@ public abstract class Carder : MonoBehaviour
     public void Party(float range)
     {
         if (C.playing) return;
-        Vector2 position = new Vector2(transform.position.x, transform.position.y + 0.735f);
-        Collider2D[] hits = Physics2D.OverlapCircleAll(position, range, GameManager.Resource.carderLayer);
+        Vector3 position = new Vector3(transform.position.x, transform.position.y + 0.603f, transform.position.z);
+        Collider[] hits = Physics.OverlapSphere(position, range, GameManager.Resource.carderLayer);
         if (hits.Length < 2) return;
         for (int i = 0; i < hits.Length; i++)
         {
@@ -27,7 +27,7 @@ public abstract class Carder : MonoBehaviour
             }
         }
         Player.instance.Accept(false);
-        Log($"Party at Position ({position.x}, {position.y}), Range {range}, {hits.Length} Targets");
+        Log($"Party at Position ({position.x}, {position.y}, {position.z}), Range {range}, {hits.Length} Targets");
     }
 
     public abstract void Accept(bool resume = false);

@@ -104,34 +104,35 @@ public class Player : Carder
 
     void Update()
     {
-        if (GameManager.timeScale == 0) return;
-
-        UpdateInputs();
-
-        if (carding) // Cards
+        if (GameManager.timeScale != 0)
         {
-            UpdateMode();
-            switch (cardMode)
+            UpdateInputs();
+
+            if (carding) // Cards
             {
-                case 0:
-                    UpdateSelection();
-                    UpdateSkip();
-                    break;
-                case 2:
-                    UpdateSelection();
-                    break;
+                UpdateMode();
+                switch (cardMode)
+                {
+                    case 0:
+                        UpdateSelection();
+                        UpdateSkip();
+                        break;
+                    case 2:
+                        UpdateSelection();
+                        break;
+                }
+                UpdateCard();
+                UpdateModeVisual();
             }
-            UpdateCard();
-            UpdateModeVisual();
+            else // Movement
+            {
+                UpdateMovement();
+                UpdateCardmerang();
+            }
         }
-        else // Movement
-        {
-            UpdateMovement();
-            UpdateCardmerang();
-            // UpdateAttackCard();
-            Physics.Simulate(GameManager.deltaTime);
-            cameraBrain.ManualUpdate();
-        }
+
+        Physics.Simulate(GameManager.deltaTime);
+        cameraBrain.ManualUpdate();
     }
 
     public void AddCard(CardInfo card)
@@ -205,7 +206,7 @@ public class Player : Carder
                 if (!carding) Party(2);
             }
         }
-
+        
         if (Input.GetKeyDown(KeyCode.F))
         {
             CoinRenderer.Add(camera.ScreenToWorldPoint(ToVector3(Input.mousePosition, 10)));
@@ -281,127 +282,171 @@ public class Player : Carder
 
     public void UpdateSelection()
     {
-        if (Input.GetMouseButton(0) && selectedCard) // On Card Selected
+        if (selectedCard)
         {
-            Vector2 final = Vector2.Lerp(selectedCard.thisRect.anchoredPosition, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed);
-            if (!selected) cardVel = Vector2.zero;
-            else cardVel = (final - selectedCard.thisRect.anchoredPosition) / GameManager.deltaTime;
-            selected = true;
-            selectedCard.MoveTo(final);
-            selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.localRotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
-            if (cardManager.previewCard && cardManager.carders.Contains(this) && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, selectedCard.thisRect.anchoredPosition) <= cardMinDist || Vector2.Distance(canvasMousePos, cardManager.previewCard.thisRect.anchoredPosition) <= cardMinDist) && (cardManager.carders[GetTurn()] == this || lazySelected) && cardMode == 0)
-            {
-                if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
-                cardHilight.position = cardManager.previewCard.transform.position;
-                cardHilight.rotation = cardManager.previewCard.transform.rotation;
-            }
-            else if(cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(false);
-        }
-        if (Input.GetMouseButtonUp(0) && selected && selectedCard) // On Card Deselected
-        {
-            cardHilight.gameObject.SetActive(true);
             Vector2 cardPos = selectedCard.thisRect.anchoredPosition;
-            if (cardManager.previewCard && (Vector2.Distance(cardManager.previewCard.thisRect.anchoredPosition, cardPos) <= cardMinDist || Vector2.Distance(canvasMousePos, cardManager.previewCard.thisRect.anchoredPosition) <= cardMinDist) && cardMode == 0) // Card Submit
+
+            Card previewCard = cardManager.previewCard;
+
+            bool Overlap() =>  previewCard
+                           && (Mathf.Abs(previewCard.thisRect.anchoredPosition.y - cardPos.y) <= cardMinDist
+                           ||  Mathf.Abs(previewCard.thisRect.anchoredPosition.y - canvasMousePos.y) <= cardMinDist);
+
+            bool IsMyTurn() => cardManager.carders.Contains(this) && cardManager.carders[GetTurn()] == this || lazySelected;
+
+            void SetHilight(bool active)
             {
-                if (cardManager.carders.Contains(this) && (cardManager.carders[GetTurn()] == this || lazySelected)) // My Turn
+                if (active)
                 {
-                    bool pushed;
-                    CardInfo card = new(selectedCard.type, selectedCard.num);
-                    CardInfo cardCache = cardManager.lastCard;
-                    if (Input.GetKey(KeyCode.Space))
+                    if (!cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (cardHilight.gameObject.activeSelf) cardHilight.gameObject.SetActive(false);
+                }
+            }
+
+            if (Input.GetMouseButton(0)) // On Card Selected
+            {
+                Vector2 final = Vector2.Lerp(cardPos, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed);
+
+                if (!selected) cardVel = Vector2.zero;
+                else cardVel = (final - cardPos) / GameManager.deltaTime;
+
+                selected = true;
+                selectedCard.MoveTo(final);
+                selectedCard.RotateTo(Quaternion.Lerp(selectedCard.transform.localRotation, Quaternion.identity, GameManager.deltaTime * cardManager.cardSpeed));
+
+                if (previewCard && Overlap() && IsMyTurn() && cardMode == 0)
+                {
+                    SetHilight(true);
+                    cardHilight.position = previewCard.transform.position;
+                    cardHilight.rotation = previewCard.transform.rotation;
+                }
+                else SetHilight(false);
+            }
+            if (Input.GetMouseButtonUp(0) && selected) // On Card Deselected
+            {
+                SetHilight(true);
+
+                if (previewCard && Overlap() && cardMode == 0) // Card Submit
+                {
+                    if (IsMyTurn()) // My Turn
                     {
-                        if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
+                        bool pushed;
+
+                        CardInfo card = new(selectedCard.type, selectedCard.num);
+                        CardInfo lastCard = cardManager.lastCard;
+
+                        if (Input.GetKey(KeyCode.Space)) // Lazy?
                         {
-                            pushed = cardManager.Push(card, true, cards.Count < 2);
-                            if (!lazySelected) lazyturn = GetTurn();
-                            if (pushed)
+                            if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
                             {
-                                // Card Pushed (Multiple)
+                                pushed = cardManager.Push(card, true, cards.Count < 2);
+                                if (!lazySelected) lazyturn = GetTurn();
+                                if (pushed)
+                                {
+                                    CardModule(card, lastCard, GetStack(card));
 
-                                int damage = GetStack(card); // Base (Ace, 2, Joker)
-                                if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
-                                if (cardCache == card) damage += 3; // Same
+                                    // Card Pushed (Multiple)
 
-                                damage += lazyCount;
+                                    int damage = GetStack(card); // Base (Ace, 2, Joker)
+                                    if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
+                                    if (lastCard == card) damage += 3; // Same
 
-                                gameManager.money += damage; // Apply
-                                CoinRenderer.Add(selectedCard.transform.position, damage);
+                                    damage += lazyCount;
 
-                                // Card Pushed (Multiple)
+                                    gameManager.money += damage; // Apply
+                                    CoinRenderer.Add(selectedCard.transform.position, damage);
 
-                                lazyCount++;
+                                    // Card Pushed (Multiple)
 
-                                lazySelected = true;
-                                cardManager.UpdateCarder(this, cards.Count);
-                                cardManager.PushCarder(this);
+                                    lazyCount++;
+
+                                    lazySelected = true;
+                                    cardManager.UpdateCarder(this, cards.Count);
+                                    cardManager.PushCarder(this);
+                                }
+                            }
+                            else pushed = false;
+                        }
+                        else pushed = cardManager.Push(card, false, cards.Count < 2);
+                        if (pushed)
+                        {
+                            CardModule(card, lastCard, GetStack(card));
+
+                            // Card Pushed (Single)
+
+                            int damage = GetStack(card); // Base (Ace, 2, Joker)
+                            if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
+                            if (lastCard == card) damage += 3; // Same
+
+                            gameManager.money += damage; // Apply
+                            CoinRenderer.Add(selectedCard.transform.position, damage);
+
+                            // Card Pushed (Single)
+
+                            cards.Remove(selectedCard);
+                            selectedCard.transform.SetParent(cardManager.previewParent);
+                            selectedCard.Return(cardVel);
+                            cardManager.NewCardStack(selectedCard);
+                            selectedCard = null;
+
+                            // Pushing
+                            cardManager.UpdateCarder(this, cards.Count);
+                            cardManager.PushCarder(this);
+
+                            if (cards.Count == 0) cardManager.Quit(this);
+                            else if (cards.Count == 1)
+                            {
+                                cardManager.oneCardAnimator.Animate();
+                                cardManager.oneCardParticle.Emit(50);
                             }
                         }
-                        else pushed = false;
-                    }
-                    else pushed = cardManager.Push(card, false, cards.Count < 2);
-                    if (pushed)
-                    {
-                        // Card Pushed (Single)
-
-                        int damage = GetStack(card); // Base (Ace, 2, Joker)
-                        if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
-                        if (cardCache == card) damage += 3; // Same
-
-                        gameManager.money += damage; // Apply
-                        CoinRenderer.Add(selectedCard.transform.position, damage);
-
-                        // Card Pushed (Single)
-
-                        cards.Remove(selectedCard);
-                        selectedCard.transform.SetParent(cardManager.previewParent);
-                        selectedCard.Return(cardVel);
-                        cardManager.NewCardStack(selectedCard);
-                        selectedCard = null;
-                        cardManager.UpdateCarder(this, cards.Count);
-                        cardManager.PushCarder(this);
-                        if (cards.Count == 0) cardManager.Quit(this);
-                        else if (cards.Count == 1)
+                        else
                         {
-                            cardManager.oneCardAnimator.Animate();
-                            cardManager.oneCardParticle.Emit(50);
+                            cardManager.OnDone(selectedCard, false);
+                            Log("Invalid Card");
                         }
                     }
-                    else
-                    {
-                        cardManager.OnDone(selectedCard, false);
-                        Log("Invalid Card");
-                    }
                 }
-            }
-            else
-            {
-                if (cards.Count > 1)
+                else
                 {
-                    cards.Remove(selectedCard);
-                    float min = Mathf.Infinity;
-                    Card closest = null;
-                    for (int i = 0; i < cards.Count; i++)
+                    if (cards.Count > 1)
                     {
-                        float offset = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - cardPos.x);
-                        if (offset < min)
+                        cards.Remove(selectedCard);
+                        float min = Mathf.Infinity;
+                        Card closest = null;
+                        for (int i = 0; i < cards.Count; i++)
                         {
-                            min = offset;
-                            closest = cards[i];
+                            float offset = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - cardPos.x);
+                            if (offset < min)
+                            {
+                                min = offset;
+                                closest = cards[i];
+                            }
                         }
+                        if (closest) cards.Insert(cards.IndexOf(closest) + (cardPos.x - closest.thisRect.anchoredPosition.x > 0 ? 1 : 0), selectedCard);
+                        else cards.Insert(cards.Count - 1, selectedCard);
                     }
-                    if (closest) cards.Insert(cards.IndexOf(closest) + (cardPos.x - closest.thisRect.anchoredPosition.x > 0 ? 1 : 0), selectedCard);
-                    else cards.Insert(cards.Count - 1, selectedCard);
                 }
+                selected = false;
             }
-            selected = false;
         }
+        
         if (!Input.GetKey(KeyCode.Space) && lazySelected)
         {
             cardManager.Next(lazyturn == GetTurn());
             lazySelected = false;
             lazyCount = 0;
         }
+
         multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), GameManager.deltaTime * 10f);
+    }
+
+    public void CardModule(CardInfo card, CardInfo lastCard, int damage)
+    {
+        Log($"Current: {card}, Previous: {lastCard}, Damage: {damage}");
     }
 
     public void UpdateSkip()

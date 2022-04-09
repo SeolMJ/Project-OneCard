@@ -41,6 +41,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DecalAngleFadeSupported: 1
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: 0
     - _DecalMeshViewBias: 0
@@ -50,6 +51,6 @@ Material:
     - _Speed: 0.1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 0.5019608}
-    - _OverrideColor: {r: 1, g: 1, b: 1, a: 4e-45}
+    - _OverrideColor: {r: 1, g: 1, b: 1, a: 0}
     - _Tile: {r: 0.2, g: 0.6787878, b: 0, a: 0}
   m_BuildTextureStacks: []

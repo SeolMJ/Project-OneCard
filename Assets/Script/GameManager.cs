@@ -130,7 +130,7 @@ public class GameManager : MonoBehaviour
         data.nowEntities = new();
         data.nowTurn = 0;
         data.nowStack = 0;
-        data.position = new(0, 0);
+        data.position = new(0, 0, 0);
         data.entities = new();
         for (int i = 0; i < Resource.defaultCardCount; i++) data.cards.Add(CardUtils.RandomCard());
         for (int i = 0; i < Resource.npcs.Count; i++) data.entities.Add(new());
@@ -279,7 +279,7 @@ public class GameManager : MonoBehaviour
                 {
                     data.position = new SaveVector(Player.instance.transform.position);
                     data.velocity = new SaveVector(Player.instance.rigidbody.velocity);
-                    Log(SaveLog, $"Player Transform saved: position ({data.position.x}, {data.position.y}), velocity ({data.velocity.x}, {data.velocity.y})", 2);
+                    Log(SaveLog, $"Player Transform saved: position ({data.position.x}, {data.position.y}, {data.position.z}), velocity ({data.velocity.x}, {data.velocity.y}, {data.velocity.z})", 2);
                 }
                 else Error(SaveLog, $"Player not exsisting", 2);
 
@@ -292,7 +292,7 @@ public class GameManager : MonoBehaviour
                         List<int> nowCards = NowCardsToIndex(i);
                         data.entities[i] = new(npcs[i].position, npcs[i].name, new(npcs[i].cards), npcs[i].nowCards == null ? new() : (nowCards ?? new()), true);
                         if (nowCards != null) if (!data.nowEntities.Contains(i)) data.nowEntities.Add(i);
-                        Log(SaveLog, $"NPC '{data.entities[i].name}'(={npcs[i].name}) saved (pos<{data.entities[i].position.x}, {data.entities[i].position.y}>, {data.entities[i].cards.Count} cards, {data.entities[i].nowCards.Count} ingame cards)", 2);
+                        Log(SaveLog, $"NPC '{data.entities[i].name}'(={npcs[i].name}) saved (pos<{data.entities[i].position.x}, {data.entities[i].position.y}, {data.entities[i].position.z}>, {data.entities[i].cards.Count} cards, {data.entities[i].nowCards.Count} ingame cards)", 2);
                     }
                     Log(SaveLog, $"{data.entities.Count} NPCs saved", 2);
                 }
@@ -538,22 +538,25 @@ public struct SaveVector
 {
     public float x;
     public float y;
+    public float z;
 
-    public SaveVector(float x, float y)
+    public SaveVector(float x, float y, float z)
     {
         this.x = x;
         this.y = y;
+        this.z = z;
     }
 
-    public SaveVector(Vector2 vector)
+    public SaveVector(Vector3 vector)
     {
         x = vector.x;
         y = vector.y;
+        z = vector.z;
     }
 
-    public Vector2 Get()
+    public Vector3 Get()
     {
-        return new Vector2(x, y);
+        return new Vector3(x, y, z);
     }
 }
 
