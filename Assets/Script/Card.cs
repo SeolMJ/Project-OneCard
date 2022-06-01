@@ -63,6 +63,54 @@ public class Card : MonoBehaviour
         SelectSymbol(mode);
     }
 
+    [ContextMenu("Set Symbols")]
+    public void SetSymbols()
+    {
+        switch (num)
+        {
+            case CardNum.A: ActiveSymbolsEditor(16); break;
+            case CardNum.Two: ActiveSymbolsEditor(5, 10); break;
+            case CardNum.Three: ActiveSymbolsEditor(5, 8, 10); break;
+            case CardNum.Four: ActiveSymbolsEditor(0, 4, 11, 15); break;
+            case CardNum.Five: ActiveSymbolsEditor(0, 4, 8, 11, 15); break;
+            case CardNum.Six: ActiveSymbolsEditor(0, 2, 4, 11, 13, 15); break;
+            case CardNum.Seven: ActiveSymbolsEditor(0, 2, 4, 7, 11, 13, 15); break;
+            case CardNum.Eight: ActiveSymbolsEditor(0, 1, 3, 4, 11, 12, 14, 15); break;
+            case CardNum.Nine: ActiveSymbolsEditor(0, 1, 3, 4, 8, 11, 12, 14, 15); break;
+            case CardNum.Ten: ActiveSymbolsEditor(0, 1, 3, 4, 6, 9, 11, 12, 14, 15); break;
+            case CardNum.BlackJoker: ActiveSymbolsEditor(16); break;
+            case CardNum.ColorJoker: ActiveSymbolsEditor(16); break;
+            case CardNum.None: ActiveSymbolsEditor(); break;
+            default: ActiveSymbolsEditor(0, 16, 15); break;
+        };
+    }
+
+    void ActiveSymbolsEditor(params int[] indexs)
+    {
+        if (indexs == null || indexs.Length == 0)
+        {
+            for (int i = 0; i < 17; i++) symbols[i].gameObject.SetActive(false);
+        }
+        else
+        {
+            int count = indexs.Length;
+            List<int> index = new(indexs);
+            for (int i = 0, j = 0; i < 17; i++)
+            {
+                int id = index.IndexOf(i);
+                if (j < count && id != -1)
+                {
+                    symbols[i].gameObject.SetActive(true);
+                    j++;
+                }
+                else
+                {
+                    symbols[i].gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
     public void SelectSymbol(CardInitMode mode)
     {
         if (!gameObject.activeInHierarchy)

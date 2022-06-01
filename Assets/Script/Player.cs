@@ -343,7 +343,14 @@ public class Player : Carder
                             if (Match(selectedCard.num, cardManager.lastCard.num) || !lazySelected)
                             {
                                 pushed = cardManager.Push(card, true, cards.Count < 2);
-                                if (!lazySelected) lazyturn = GetTurn();
+                                if (!lazySelected)
+                                {
+                                    lazyturn = GetTurn();
+                                    if (lazyturn < 0)
+                                    {
+                                        return;
+                                    }
+                                }
                                 if (pushed)
                                 {
                                     CardModule(card, lastCard, GetStack(card));
@@ -368,45 +375,47 @@ public class Player : Carder
                                     cardManager.PushCarder(this);
                                 }
                             }
-                            else pushed = false;
-                        }
-                        else pushed = cardManager.Push(card, false, cards.Count < 2);
-                        if (pushed)
-                        {
-                            CardModule(card, lastCard, GetStack(card));
-
-                            // Card Pushed (Single)
-
-                            int damage = GetStack(card); // Base (Ace, 2, Joker)
-                            if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
-                            if (lastCard == card) damage += 3; // Same
-
-                            gameManager.money += damage; // Apply
-                            CoinRenderer.Add(selectedCard.transform.position, damage);
-
-                            // Card Pushed (Single)
-
-                            cards.Remove(selectedCard);
-                            selectedCard.transform.SetParent(cardManager.previewParent);
-                            selectedCard.Return(cardVel);
-                            cardManager.NewCardStack(selectedCard);
-                            selectedCard = null;
-
-                            // Pushing
-                            cardManager.UpdateCarder(this, cards.Count);
-                            cardManager.PushCarder(this);
-
-                            if (cards.Count == 0) cardManager.Quit(this);
-                            else if (cards.Count == 1)
-                            {
-                                cardManager.oneCardAnimator.Animate();
-                                cardManager.oneCardParticle.Emit(50);
-                            }
                         }
                         else
                         {
-                            cardManager.OnDone(selectedCard, false);
-                            Log("Invalid Card");
+                            pushed = cardManager.Push(card, false, cards.Count < 2);
+                            if (pushed)
+                            {
+                                CardModule(card, lastCard, GetStack(card));
+
+                                // Card Pushed (Single)
+
+                                int damage = GetStack(card); // Base (Ace, 2, Joker)
+                                if (cardManager.stack > 0 && damage > 0) damage += 2; // Counter
+                                if (lastCard == card) damage += 3; // Same
+
+                                gameManager.money += damage; // Apply
+                                CoinRenderer.Add(selectedCard.transform.position, damage);
+
+                                // Card Pushed (Single)
+
+                                cards.Remove(selectedCard);
+                                selectedCard.transform.SetParent(cardManager.previewParent);
+                                selectedCard.Return(cardVel);
+                                cardManager.NewCardStack(selectedCard);
+                                selectedCard = null;
+
+                                // Pushing
+                                cardManager.UpdateCarder(this, cards.Count);
+                                cardManager.PushCarder(this);
+
+                                if (cards.Count == 0) cardManager.Quit(this);
+                                else if (cards.Count == 1)
+                                {
+                                    cardManager.oneCardAnimator.Animate();
+                                    cardManager.oneCardParticle.Emit(50);
+                                }
+                            }
+                            else
+                            {
+                                cardManager.OnDone(selectedCard, false);
+                                Log("Invalid Card");
+                            }
                         }
                     }
                 }

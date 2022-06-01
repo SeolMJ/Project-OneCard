@@ -2015,6 +2015,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 1010
   m_TargetDisplay: 0
@@ -4658,6 +4659,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -4827,7 +4829,7 @@ GameObject:
   - component: {fileID: 1039820438}
   - component: {fileID: 1039820440}
   m_Layer: 0
-  m_Name: MenuPanel
+  m_Name: SettingsPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5019,9 +5021,11 @@ MonoBehaviour:
     position:
       x: 0
       y: 0
+      z: 0
     velocity:
       x: 0
       y: 0
+      z: 0
     health: 0
     damage: 0
     luck: 0
@@ -22736,7 +22740,19 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1039820436}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
   - m_PersistentCalls:
       m_Calls: []
   cardHeightCurve:
@@ -22887,6 +22903,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 177638, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
@@ -23191,6 +23208,7 @@ PrefabInstance:
       objectReference: {fileID: 12800000, guid: d523cde1d178d7c4ca6bb724b9d5213e, type: 3}
     m_RemovedComponents:
     - {fileID: 11480938, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
 --- !u!1 &1448795401
 GameObject:
@@ -24009,7 +24027,7 @@ GameObject:
   - component: {fileID: 1655118053}
   - component: {fileID: 1655118052}
   m_Layer: 5
-  m_Name: Card (1)
+  m_Name: CardSettings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24151,7 +24169,31 @@ MonoBehaviour:
   isSelected: 0
   onClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1039820436}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1340635326}
+        m_TargetAssemblyTypeName: CardMenu, Assembly-CSharp
+        m_MethodName: Deselect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1774943133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26147,7 +26189,7 @@ GameObject:
   - component: {fileID: 2106293017}
   - component: {fileID: 2106293016}
   m_Layer: 5
-  m_Name: Card (2)
+  m_Name: CardQuit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26377,7 +26419,7 @@ GameObject:
   - component: {fileID: 8104532423418417477}
   - component: {fileID: 8104532423418417476}
   m_Layer: 5
-  m_Name: Card
+  m_Name: CardPlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

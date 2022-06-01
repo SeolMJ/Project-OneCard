@@ -72,6 +72,7 @@ namespace SeolMJ
 
         public static int GetTurn()
         {
+            if (cardManager.carders.Count == 0) return -1;
             cardManager.turn = (cardManager.turn + cardManager.carders.Count) % cardManager.carders.Count;
             return cardManager.turn;
         }

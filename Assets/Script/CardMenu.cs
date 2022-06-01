@@ -155,6 +155,12 @@ public class CardMenu : MonoBehaviour
         if (selected.GetSiblingIndex() != parent.childCount - 2) selected.SetSiblingIndex(parent.childCount - 2);
     }
 
+    public void Deselect()
+    {
+        StopAllCoroutines();
+        finished = false;
+    }
+
     void DelayedInvoke(int index)
     {
         StartCoroutine(DoDelayedInvoke(index));

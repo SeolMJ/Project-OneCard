@@ -416,12 +416,13 @@ public class GameManager : MonoBehaviour
     public List<int> NowCardsToIndex(int npc)
     {
         List<NPCInfo> npcs = Resource.npcs;
-        if (npcs[npc].nowCards == null) return null;
-        if (npcs[npc].nowCards.Count == 0) return null;
+        List<int> thatCards = data.entities[npc].nowCards;
+        if (thatCards == null || thatCards.Count == 0) return null;
         List<int> indexs = new();
-        for (int i = 0; i < npcs[npc].nowCards.Count; i++)
+        NPCInfo thatNPC = npcs[npc];
+        for (int i = 0; i < thatCards.Count; i++)
         {
-            indexs.Add(npcs[npc].cards.IndexOf(npcs[npc].nowCards[i]));
+            indexs.Add(thatNPC.cards.IndexOf(thatNPC.nowCards[i]));
         }
         return indexs;
     }
@@ -429,12 +430,20 @@ public class GameManager : MonoBehaviour
     public List<CardInfo> IndexToNowCards(int npc)
     {
         List<NPCInfo> npcs = Resource.npcs;
-        if (data.entities[npc].nowCards == null) return null;
-        if (data.entities[npc].nowCards.Count == 0) return null;
+        List<int> thatCards = data.entities[npc].nowCards;
+        if (thatCards == null || thatCards.Count == 0) return null;
         List<CardInfo> indexs = new();
-        for (int i = 0; i < data.entities[npc].nowCards.Count; i++)
+        NPCInfo thatNPC = npcs[npc];
+        int thatCount = thatNPC.cards.Count;
+        for (int i = 0; i < thatCards.Count; i++)
         {
-            indexs.Add(npcs[npc].cards[data.entities[npc].nowCards[i]]);
+            int thatIndex = thatCards[i];
+            if (thatIndex >= thatCount || thatIndex < 0)
+            {
+                Error(LoadLog, $"NPC: '{data.entities[npc].name}'(={thatNPC.name}) Missing Cards Cur: {thatIndex} i: {i} Size: {thatCount}", 2);
+                continue;
+            }
+            indexs.Add(thatNPC.cards[thatIndex]);
         }
         return indexs;
     }
