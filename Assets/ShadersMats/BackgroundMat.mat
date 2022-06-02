@@ -55,7 +55,7 @@ Material:
     - _Speed: 0.1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 0.5019608}
-    - _OverrideColor: {r: 1, g: 1, b: 1, a: -0}
+    - _OverrideColor: {r: 1, g: 1, b: 1, a: 0.9999997}
     - _Tile: {r: 0.2, g: 0.6787878, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &2824780609447441821

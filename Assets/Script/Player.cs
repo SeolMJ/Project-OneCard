@@ -353,8 +353,6 @@ public class Player : Carder
                                 }
                                 if (pushed)
                                 {
-                                    CardModule(card, lastCard, GetStack(card));
-
                                     // Card Pushed (Multiple)
 
                                     int damage = GetStack(card); // Base (Ace, 2, Joker)
@@ -371,18 +369,17 @@ public class Player : Carder
                                     lazyCount++;
 
                                     lazySelected = true;
-                                    cardManager.UpdateCarder(this, cards.Count);
-                                    cardManager.PushCarder(this);
                                 }
                             }
+                            else pushed = false;
                         }
-                        else
+                        else pushed = cardManager.Push(card, false, cards.Count < 2);
+                        if (pushed)
                         {
-                            pushed = cardManager.Push(card, false, cards.Count < 2);
-                            if (pushed)
-                            {
-                                CardModule(card, lastCard, GetStack(card));
+                            CardModule(card, lastCard, GetStack(card));
 
+                            if (!lazySelected) // Not Multiple
+                            {
                                 // Card Pushed (Single)
 
                                 int damage = GetStack(card); // Base (Ace, 2, Joker)
@@ -393,29 +390,29 @@ public class Player : Carder
                                 CoinRenderer.Add(selectedCard.transform.position, damage);
 
                                 // Card Pushed (Single)
-
-                                cards.Remove(selectedCard);
-                                selectedCard.transform.SetParent(cardManager.previewParent);
-                                selectedCard.Return(cardVel);
-                                cardManager.NewCardStack(selectedCard);
-                                selectedCard = null;
-
-                                // Pushing
-                                cardManager.UpdateCarder(this, cards.Count);
-                                cardManager.PushCarder(this);
-
-                                if (cards.Count == 0) cardManager.Quit(this);
-                                else if (cards.Count == 1)
-                                {
-                                    cardManager.oneCardAnimator.Animate();
-                                    cardManager.oneCardParticle.Emit(50);
-                                }
                             }
-                            else
+
+                            cards.Remove(selectedCard);
+                            selectedCard.transform.SetParent(cardManager.previewParent);
+                            selectedCard.Return(cardVel);
+                            cardManager.NewCardStack(selectedCard);
+                            selectedCard = null;
+
+                            // Pushing
+                            cardManager.UpdateCarder(this, cards.Count);
+                            cardManager.PushCarder(this);
+
+                            if (cards.Count == 0) cardManager.Quit(this);
+                            else if (cards.Count == 1)
                             {
-                                cardManager.OnDone(selectedCard, false);
-                                Log("Invalid Card");
+                                cardManager.oneCardAnimator.Animate();
+                                cardManager.oneCardParticle.Emit(50);
                             }
+                        }
+                        else
+                        {
+                            cardManager.OnDone(selectedCard, false);
+                            Log("Invalid Card");
                         }
                     }
                 }
