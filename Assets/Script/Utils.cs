@@ -28,6 +28,9 @@ namespace SeolMJ
         public static bool IsZero(this Vector2 vector)
             => vector.x == 0 && vector.y == 0;
 
+        public static bool IsZero(this Vector2Int vector)
+            => vector.x == 0 && vector.y == 0;
+
         public static bool IsApproximatelyZero(this Vector2 vector) =>
             Mathf.Approximately(vector.x, 0) && Mathf.Approximately(vector.y, 0);
 
@@ -45,6 +48,12 @@ namespace SeolMJ
 
         public static Vector2 NemoNemoBeam(this Vector2 vector)
             => vector * Mathf.Min(Mathf.Abs(1f / vector.x), Mathf.Abs(1f / vector.y));
+
+        public static Vector2 Sign(this Vector2 vector)
+            => new Vector2(Mathf.Sign(vector.x), Mathf.Sign(vector.y));
+
+        public static Vector2Int SignToInt(this Vector2 vector)
+            => new Vector2Int(Math.Sign(vector.x), Math.Sign(vector.y));
 
         public static Vector2 SpringDamp(Vector2 current, Vector2 target, ref Vector2 velocity, ref Vector2 velvel, float speed, float damp)
             => SpringDamp(current, target, ref velocity, ref velvel, speed, damp, Time.deltaTime);
@@ -75,6 +84,17 @@ namespace SeolMJ
 
         public static Vector3 ToVector3(Vector2 vector, float z) => 
             new Vector3(vector.x, vector.y, z);
+        #endregion
+
+        #region Ints
+
+        public static int SignToInt(float input)
+        {
+            if (input > 0) return 1;
+            if (input < 0) return -1;
+            return 0;
+        }
+
         #endregion
 
         #region Floats

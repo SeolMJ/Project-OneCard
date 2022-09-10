@@ -5,7 +5,9 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
 
-    public static LevelManager current;
+    public static LevelManager instance;
+
+    public Dictionary<Vector2Int, Carder> tiles;
 
     void Awake()
     {
@@ -16,17 +18,30 @@ public class LevelManager : MonoBehaviour
             SceneLoader.Return();
             return;
         }
-        current = this;
+        instance = this;
     }
 
     void Start()
     {
-        
+        tiles = new Dictionary<Vector2Int, Carder>();
+        for (int x = -10; x <= 10; x++)
+        {
+            for (int y = -10; y <= 10; y++)
+            {
+                tiles.Add(new(x, y), null);
+            }
+        }
+        CameraManager.position = Vector2.zero;
     }
 
     void Update()
     {
         
+    }
+
+    public static bool Available(Vector2Int position, out Carder carder)
+    {
+        return instance.tiles.TryGetValue(position, out carder) && !carder;
     }
 
 }

@@ -159,6 +159,7 @@ public class CardMenu : MonoBehaviour
     {
         StopAllCoroutines();
         finished = false;
+        select.gameObject.SetActive(true);
     }
 
     void DelayedInvoke(int index)

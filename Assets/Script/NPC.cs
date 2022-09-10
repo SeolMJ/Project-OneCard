@@ -13,7 +13,7 @@ public abstract class NPC : Carder
 
     void Start()
     {
-        NpcLog = new("NPC", GameManager.Resource.npcLogColor);
+        NpcLog = new("N-PC", GameManager.Resource.npcLogColor);
         info.position = transform.position;
         info.scene = GameManager.GetScene();
         int index = GameManager.Resource.npcs.IndexOf(info);
@@ -51,7 +51,7 @@ public abstract class NPC : Carder
         yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
         using var _ = new Busy(3);
     Retry:
-        Task<int> pushTask = Task.Run(() => Think(in info.nowCards, info.sensitive, info.careful, info.quick));
+        Task<int> pushTask = Task.Run(() => Think(in info.nowCards, false, CardInfo.Idle, info.sensitive, info.careful, info.quick));
         while (!pushTask.IsCompleted) yield return null;
         int push = pushTask.Result;
 
@@ -60,7 +60,7 @@ public abstract class NPC : Carder
             if (C.stack > 0) AddCards(C.stack);
             else
             {
-                Log("가능한 카드 없음. 새로 뽑음");
+                Log($"Pick {info.nowCards.Count} + [1] = {info.nowCards.Count + 1}");
                 info.nowCards.Add(C.Pick());
                 C.Next();
                 C.UpdateCarder(this, info.nowCards.Count);
@@ -69,13 +69,15 @@ public abstract class NPC : Carder
         }
         else
         {
-            Log("카드 제출 완료");
-            if (!C.Push(info.nowCards[push], true, info.nowCards.Count < 2))
+            CardInfo last = C.lastCard;
+            CardInfo card = info.nowCards[push];
+            if (!C.Push(card, true, info.nowCards.Count < 2))
             {
                 if (C.playing) goto Retry;
                 else yield break;
             }
-            C.NewCardStack(C.PreviewCard(info.nowCards[push]));
+            CardModule(card, last, CardUtils.GetStack(card));
+            C.NewCardStack(C.PreviewCard(card));
             info.nowCards.RemoveAt(push);
             C.UpdateCarder(this, info.nowCards.Count);
             C.PushCarder(this, 1);
@@ -83,6 +85,33 @@ public abstract class NPC : Carder
             {
                 Log("승리!");
                 C.Quit(this);
+            }
+            last = card;
+            while (true)
+            {
+                pushTask = Task.Run(() => Think(in info.nowCards, true, last, info.sensitive, info.careful, info.quick));
+                while (!pushTask.IsCompleted) yield return null;
+                push = pushTask.Result;
+                if (push == -1) break;
+                card = info.nowCards[push];
+                yield return new GameManager.WaitForScaledSeconds().Wait(Random.Range(0.25f, 0.5f));
+                if (!C.Push(card, true, info.nowCards.Count < 2))
+                {
+                    if (C.playing) continue;
+                    else yield break;
+                }
+                CardModule(card, last, CardUtils.GetStack(card));
+                C.NewCardStack(C.PreviewCard(card));
+                info.nowCards.RemoveAt(push);
+                C.UpdateCarder(this, info.nowCards.Count);
+                C.PushCarder(this, 1);
+                if (info.nowCards.Count == 0)
+                {
+                    Log("승리!");
+                    C.Quit(this);
+                    break;
+                }
+                last = card;
             }
             C.Next();
         }
@@ -98,9 +127,9 @@ public abstract class NPC : Carder
             info.nowCards.Add(card);
         }
 
-        C.DamageCarder(this, (int)count);
+        Log($"Pick {info.nowCards.Count} + [{count}] = {count + info.nowCards.Count}");
 
-        Log($"막을 수 있는 카드 없음. 카드 {count}개 추가");
+        C.DamageCarder(this, (int)count);
 
         if (info.nowCards.Count > 19) Quit();
         else C.Damage();
@@ -158,6 +187,11 @@ public abstract class NPC : Carder
         C.Next();
     }
 
+    public void CardModule(CardInfo card, CardInfo lastCard, int stack)
+    {
+        Log4u.Log(NpcLog, $"{card} ← {lastCard}, [{stack}] : {info.name}");
+    }
+
     public void Log(string content)
     {
         Log4u.Log(NpcLog, $"{info.name} : {content}");
@@ -170,12 +204,19 @@ public abstract class NPC : Carder
 
     // AI
 
-    public static int Think(in List<CardInfo> cards, float sensitive, float careful, float quick)
+    public static int Think(in List<CardInfo> cards, bool lazy, CardInfo last, float sensitive, float careful, float quick)
     {
         int push = -1;
         List<int> available = new();
 
-        for (int i = 0; i < cards.Count; i++) if (C.CheckCard(cards[i])) available.Add(i);
+        if (lazy)
+        {
+            for (int i = 0; i < cards.Count; i++) if (CardUtils.Match(last.num, cards[i].num) && C.CheckCard(cards[i])) available.Add(i);
+        }
+        else
+        {
+            for (int i = 0; i < cards.Count; i++) if (C.CheckCard(cards[i])) available.Add(i);
+        }
 
         if (available.Count == 0) return -1;
 
@@ -223,8 +264,8 @@ public abstract class NPC : Carder
                     }
                 }
 
-                if (powerfuls.Count > 0) push = powerfuls[TrashRandom(powerfuls.Count)];
-                else push = attackable[TrashRandom(attackable.Count)];
+                if (powerfuls.Count > 0) push = powerfuls[Rand(powerfuls.Count)];
+                else push = attackable[Rand(attackable.Count)];
             }
             else
             {
@@ -262,20 +303,22 @@ public abstract class NPC : Carder
                 int king = Contain(CardNum.K, in cards, available);
                 if (king != -1) push = king;
             }
-            if (push == -1) push = available[TrashRandom(available.Count)];
+            if (push == -1) push = available[Rand(available.Count)];
         }
 
         return push;
     }
 
+    static System.Random rand = new();
+
     static bool Rand(float percent)
     {
-        return new System.Random().NextDouble() <= percent;
+        return rand.NextDouble() <= percent;
     }
 
-    static int TrashRandom(int max)
+    static int Rand(int max)
     {
-        return new System.Random().Next(max);
+        return rand.Next(max);
     }
 
     static int Powerful(CardInfo card)
@@ -305,7 +348,7 @@ public abstract class NPC : Carder
             if (CardUtils.Match(cards[available[i]].num, num)) cont.Add(available[i]);
         }
         if (cont.Count == 0) return -1;
-        return cont[TrashRandom(cont.Count)];
+        return cont[Rand(cont.Count)];
     }
 
     static int Contain(CardInfo card, in List<CardInfo> cards, List<int> available)
@@ -316,7 +359,7 @@ public abstract class NPC : Carder
             if (CardUtils.Match(cards[available[i]].num, card.num) && CardUtils.Match(cards[available[i]].type, card.type)) cont.Add(available[i]);
         }
         if (cont.Count == 0) return -1;
-        return cont[TrashRandom(cont.Count)];
+        return cont[Rand(cont.Count)];
     }
 
     //int[] Multiple()

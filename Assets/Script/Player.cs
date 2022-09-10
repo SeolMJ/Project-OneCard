@@ -17,7 +17,6 @@ public class Player : Carder
     [Header("Camera")]
     public new Camera camera;
     public Transform cameraTransform;
-    public CinemachineBrain cameraBrain;
     public Vector3 cameraOffset;
     public float cameraSpeed;
 
@@ -27,8 +26,12 @@ public class Player : Carder
     public AnimationCurve cardHeightCurve;
     public RectTransform multiSelectRect;
 
+    [Header("Cursor")]
+    public LineRenderer pathLine;
+    public Transform focusCard;
+    public ParticleSystem focusParticle;
+
     [Header("Movement")]
-    public new Rigidbody rigidbody;
     public float moveSpeed;
     public float runSpeed;
     public float jumpSpeed;
@@ -54,6 +57,7 @@ public class Player : Carder
     [HideInInspector] public bool carding;
     private Vector2 canvasMousePos;
     private Vector3 worldMousePos;
+    private Vector2Int gridMousePos;
 
     // Camera
     private Vector3 cameraVel;
@@ -72,6 +76,11 @@ public class Player : Carder
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
     private Vector2 keyInput, keyInputVel;
+    private Vector2Int position, destination;
+    private Plane groundPlane;
+
+    // Cursor
+    private ParticleSystem.EmitParams focusParticleParams;
 
     // Cardmerang
     private float shootCooltime;
@@ -91,18 +100,24 @@ public class Player : Carder
 
         // Load
         transform.position = G.data.position.Get();
-        rigidbody.velocity = G.data.velocity.Get();
+        //rigidbody.velocity = G.data.velocity.Get();
 
         // Reset
         if (!camera) camera = G.GetComponent<Camera>();
         cards = new List<Card>();
         cardMode = 0;
+        groundPlane = new Plane(Vector3.up, Vector3.zero);
 
         // Else
         Canvas.GetDefaultCanvasMaterial().enableInstancing = true;
     }
 
-    void Update()
+    void OnDestroy()
+    {
+        instance = null;
+    }
+
+    public void OnUpdate()
     {
         if (GameManager.timeScale != 0)
         {
@@ -124,15 +139,11 @@ public class Player : Carder
                 UpdateCard();
                 UpdateModeVisual();
             }
-            else // Movement
-            {
-                UpdateMovement();
-                UpdateCardmerang();
-            }
-        }
 
-        Physics.Simulate(GameManager.deltaTime);
-        cameraBrain.ManualUpdate();
+            UpdatePath();
+            UpdateMovement();
+            UpdateCardmerang();
+        }
     }
 
     public void AddCard(CardInfo card)
@@ -275,7 +286,7 @@ public class Player : Carder
             cardInfos.Add(card.GetInfo());
         }
 
-        int result = NPC.Think(in cardInfos, UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f));
+        int result = NPC.Think(in cardInfos, false, CardInfo.Idle, UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(0.5f, 1f));
 
         // Incomplete
     }
@@ -450,9 +461,9 @@ public class Player : Carder
         multiSelectRect.anchoredPosition = Vector2.Lerp(multiSelectRect.anchoredPosition, new Vector2(0, Input.GetKey(KeyCode.Space) && cardMode == 0 ? 0 : -128f), GameManager.deltaTime * 10f);
     }
 
-    public void CardModule(CardInfo card, CardInfo lastCard, int damage)
+    public void CardModule(CardInfo card, CardInfo lastCard, int stack)
     {
-        Log($"Current: {card}, Previous: {lastCard}, Damage: {damage}");
+        Log($"{card} ← {lastCard}, [{stack}]");
     }
 
     public void UpdateSkip()
@@ -470,10 +481,12 @@ public class Player : Carder
 
                 // Self Damaged
 
+                Log($"Pick {cards.Count} + [{cardManager.stack}] = {cards.Count + cardManager.stack}");
                 AddCards(cardManager.stack);
             }
             else // Just Skip
             {
+                Log($"Pick {cards.Count} + [1] = {cards.Count + 1}");
                 if (cards.Count < 20) PickCard(cardManager.Pick());
                 cardManager.UpdateCarder(this, cards.Count);
                 cardManager.Next();
@@ -571,6 +584,7 @@ public class Player : Carder
 
     public void UpdateMovementOld()
     {
+        /*
         Vector2 keyInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         velocity = keyInput == Vector2.zero
             ? Vector2.zero
@@ -578,6 +592,23 @@ public class Player : Carder
         Vector2 normalizedVelocity = velocity.normalized;
         if (keyInput != Vector2.zero) rigidbody.velocity += moveSpeed * GameManager.deltaTime * new Vector3(normalizedVelocity.x, 0, normalizedVelocity.y);
         else velocityVel = Vector2.zero;
+        */
+    }
+
+    public void UpdatePath()
+    {
+        Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+        groundPlane.SetNormalAndPosition(Vector3.up, transform.position);
+        groundPlane.Raycast(ray, out float enter);
+        Vector3 hit = ray.GetPoint(enter);
+        Vector2Int pos = Vector2Int.RoundToInt(new(hit.x, hit.z));
+        if (pos != gridMousePos)
+        {
+            focusParticleParams.position = new Vector3(gridMousePos.x, 0f, gridMousePos.y);
+            focusParticle.Emit(focusParticleParams, 1);
+        }
+        focusCard.position = Vector3.Lerp(focusCard.position, new Vector3(pos.x, 0f, pos.y), GameManager.deltaTime * 50f);
+        gridMousePos = pos;
     }
 
     public void UpdateMovement()
@@ -586,17 +617,31 @@ public class Player : Carder
         keyInput = Vector2.SmoothDamp(keyInput, new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")), ref keyInputVel, moveSmooth);
         bool Shift = Input.GetKey(KeyCode.LeftShift);
 
-        // Rotation
-        //transform.eulerAngles = new Vector3(0f, cameraTransform.eulerAngles.y, 0f); //Quaternion.LookRotation((transform.position - new Vector3(cameraTransform.position.x, transform.position.y, cameraTransform.position.z)).normalized);
+        if (Input.GetMouseButton(0))
+        {
+            destination = gridMousePos;
+        }
 
-        // Force
-        float RealDrag = 1 - drag * Time.deltaTime;
-        rigidbody.velocity = new Vector3(rigidbody.velocity.x * RealDrag, rigidbody.velocity.y, rigidbody.velocity.z * RealDrag);
-        rigidbody.velocity += transform.rotation * ((Shift ? runSpeed : moveSpeed) * Time.deltaTime * new Vector3(keyInput.x, 0, keyInput.y));
+        // Movement;
+        Vector2 newPosition = Vector2.MoveTowards(new(transform.position.x, transform.position.z), position, moveSpeed * GameManager.deltaTime);
 
-        // Jump
-        bool Grounded = Physics.CheckSphere(transform.position + transform.up * (0.3f - Physics.defaultContactOffset), 0.3f, groundLayer);
-        if (Grounded && Input.GetKey(KeyCode.Space)) rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpSpeed, rigidbody.velocity.z);
+        while (newPosition == position)
+        {
+            Vector2Int difference = destination - position;
+            if (Utils.IsZero(difference)) break;
+            Vector2Int preview = position + Utils.SignToInt(difference);
+            if (LevelManager.Available(preview, out _))
+            {
+                position = preview;
+            }
+            else
+            {
+                break;
+            }
+            newPosition = Vector2.MoveTowards(new(transform.position.x, transform.position.z), position, moveSpeed * GameManager.deltaTime);
+        }
+
+        transform.position = new Vector3(newPosition.x, 0f, newPosition.y);
     }
 
     public void UpdateCardmerang()
@@ -674,7 +719,7 @@ public class Player : Carder
 
     public static new void Log(string content, byte state = 0)
     {
-        logPreset ??= new("Player", GameManager.Resource.playerLogColor);
+        logPreset ??= new("User", GameManager.Resource.playerLogColor);
         Log4u.Log(logPreset.Value, content, state);
     }
 

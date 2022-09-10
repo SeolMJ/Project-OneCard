@@ -98,6 +98,9 @@ public class GameManager : MonoBehaviour
             busyGroup.alpha = Mathf.SmoothDamp(busyGroup.alpha, isBusy ? 1 : 0, ref busyAlphaVel, isBusy ? busySpeed * 0.5f : busySpeed);
             foreach (LoadingCard card in busyCards) card.Animate();
         }
+
+        Player.instance?.OnUpdate();
+        CameraManager.instance?.OnUpdate();
     }
 
     LogPreset SystemLog;
@@ -278,7 +281,7 @@ public class GameManager : MonoBehaviour
                 if (Player.instance)
                 {
                     data.position = new SaveVector(Player.instance.transform.position);
-                    data.velocity = new SaveVector(Player.instance.rigidbody.velocity);
+                    data.velocity = new SaveVector(Player.instance.GetComponent<Rigidbody>().velocity);
                     Log(SaveLog, $"Player Transform saved: position ({data.position.x}, {data.position.y}, {data.position.z}), velocity ({data.velocity.x}, {data.velocity.y}, {data.velocity.z})", 2);
                 }
                 else Error(SaveLog, $"Player not exsisting", 2);

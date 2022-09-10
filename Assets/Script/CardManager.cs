@@ -551,10 +551,10 @@ public struct CardInfo
             CardType.None => '_',
             CardType.Diamond => '◆',
             CardType.Spade => '♠',
-            CardType.Heart => '❤',
+            CardType.Heart => '♥',
             CardType.Clover => '♣',
-            CardType.Color => '$',
-            CardType.Black => '%',
+            CardType.Color => '□',
+            CardType.Black => '■',
             _ => '_'
         };
 
