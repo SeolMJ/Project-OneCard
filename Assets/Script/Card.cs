@@ -120,24 +120,24 @@ public class Card : MonoBehaviour
         }
         switch (num)
         {
-            case CardNum.A: ActiveSymbols(16); break;
-            case CardNum.Two: ActiveSymbols(5, 10); break;
-            case CardNum.Three: ActiveSymbols(5, 8, 10); break;
-            case CardNum.Four: ActiveSymbols(0, 4, 11, 15); break;
-            case CardNum.Five: ActiveSymbols(0, 4, 8, 11, 15); break;
-            case CardNum.Six: ActiveSymbols(0, 2, 4, 11, 13, 15); break;
-            case CardNum.Seven: ActiveSymbols(0, 2, 4, 7, 11, 13, 15); break;
-            case CardNum.Eight: ActiveSymbols(0, 1, 3, 4, 11, 12, 14, 15); break;
-            case CardNum.Nine: ActiveSymbols(0, 1, 3, 4, 8, 11, 12, 14, 15); break;
-            case CardNum.Ten: ActiveSymbols(0, 1, 3, 4, 6, 9, 11, 12, 14, 15); break;
-            case CardNum.BlackJoker: ActiveSymbols(16); break;
-            case CardNum.ColorJoker: ActiveSymbols(16); break;
-            case CardNum.None: ActiveSymbols(); break;
-            default: ActiveSymbols(0, 16, 15); break;
+            case CardNum.A: ActiveSymbols(new List<int>() {16}); break;
+            case CardNum.Two: ActiveSymbols(new List<int>() {5, 10}); break;
+            case CardNum.Three: ActiveSymbols(new List<int>() {5, 8, 10}); break;
+            case CardNum.Four: ActiveSymbols(new List<int>() {0, 4, 11, 15}); break;
+            case CardNum.Five: ActiveSymbols(new List<int>() {0, 4, 8, 11, 15}); break;
+            case CardNum.Six: ActiveSymbols(new List<int>() {0, 2, 4, 11, 13, 15}); break;
+            case CardNum.Seven: ActiveSymbols(new List<int>() {0, 2, 4, 7, 11, 13, 15}); break;
+            case CardNum.Eight: ActiveSymbols(new List<int>() {0, 1, 3, 4, 11, 12, 14, 15}); break;
+            case CardNum.Nine: ActiveSymbols(new List<int>() {0, 1, 3, 4, 8, 11, 12, 14, 15}); break;
+            case CardNum.Ten: ActiveSymbols(new List<int>() {0, 1, 3, 4, 6, 9, 11, 12, 14, 15}); break;
+            case CardNum.BlackJoker: ActiveSymbols(new List<int>() {16}); break;
+            case CardNum.ColorJoker: ActiveSymbols(new List<int>() {16}); break;
+            case CardNum.None: ActiveSymbols(new List<int>() {}); break;
+            default: ActiveSymbols(new List<int>() {0, 16, 15}); break;
         };
         switch (mode)
         {
-            case CardInitMode.Return: Return(new Vector2(Random.Range(-2000f, 2000f), Random.Range(-1000f, -2000f)));  break;
+            case CardInitMode.Return: Return(new Vector2(Random.Range(-2000f, 2000f), Random.Range(-1000f, -2000f)), new Vector2(Random.Range(-20f, 20f), Random.Range(-10f, -20f)));  break;
             case CardInitMode.Popup: ReturnAndKill(); break;
             case CardInitMode.Direct:
                 killSpeed = CardManager.instance.cardFadeSpeed * 2f;
@@ -146,44 +146,143 @@ public class Card : MonoBehaviour
         }
     }
 
-    void ActiveSymbols(params int[] indexs)
+    void ActiveSymbols(List<int> indexs)
     {
-        if (indexs == null || indexs.Length == 0)
+        if (indexs == null || indexs.Count == 0)
         {
             for (int i = 0; i < 17; i++) symbols[i].gameObject.SetActive(false);
         }
         else
         {
-            int count = indexs.Length;
-            float delay = CardManager.instance.symbolDelay / count;
-            List<int> index = new(indexs);
-            for (int i = 0, j = 0; i < 17; i++)
+            int count = indexs.Count;
+            switch (type)
             {
-                int id = index.IndexOf(i);
-                if (j < count && id != -1)
-                {
-                    symbols[i].Init(delay * j, GameManager.instance.GetSymbol(i == 16, type, num));
-                    index.RemoveAt(id);
-                    j++;
-                }
-                else
-                {
-                    symbols[i].gameObject.SetActive(false);
-                }
+                case CardType.Diamond:
+                    for (int i = 0, j = 0; i < 17; i++)
+                    {
+                        int id = indexs.IndexOf(i);
+                        if (j < count && id != -1)
+                        {
+                            symbols[i].Init(GameManager.instance.GetSymbol(i == 16, type, num));
+                            Tween.Run(symbols[i], symbols[i].SelectDiamondDelay, j * 0.03f);
+                            indexs.RemoveAt(id);
+                            j++;
+                        }
+                        else
+                        {
+                            symbols[i].gameObject.SetActive(false);
+                        }
+                    }
+                    break;
+                case CardType.Spade:
+                    for (int i = 0, j = 0; i < 17; i++)
+                    {
+                        int id = indexs.IndexOf(i);
+                        if (j < count && id != -1)
+                        {
+                            symbols[i].Init(GameManager.instance.GetSymbol(i == 16, type, num));
+                            Tween.Run(symbols[i], symbols[i].SelectSpadeDelay, j * 0.03f);
+                            indexs.RemoveAt(id);
+                            j++;
+                        }
+                        else
+                        {
+                            symbols[i].gameObject.SetActive(false);
+                        }
+                    }
+                    break;
+                case CardType.Heart:
+                    for (int i = 0, j = 0; i < 17; i++)
+                    {
+                        int id = indexs.IndexOf(i);
+                        if (j < count && id != -1)
+                        {
+                            symbols[i].Init(GameManager.instance.GetSymbol(i == 16, type, num));
+                            Tween.Run(symbols[i], symbols[i].SelectSpadeDelay, j * 0.03f);
+                            indexs.RemoveAt(id);
+                            j++;
+                        }
+                        else
+                        {
+                            symbols[i].gameObject.SetActive(false);
+                        }
+                    }
+                    break;
+                case CardType.Clover:
+                    for (int i = 0, j = 0; i < 17; i++)
+                    {
+                        int id = indexs.IndexOf(i);
+                        if (j < count && id != -1)
+                        {
+                            symbols[i].Init(GameManager.instance.GetSymbol(i == 16, type, num));
+                            Tween.Run(symbols[i], symbols[i].SelectSpadeDelay, j * 0.03f);
+                            indexs.RemoveAt(id);
+                            j++;
+                        }
+                        else
+                        {
+                            symbols[i].gameObject.SetActive(false);
+                        }
+                    }
+                    break;
+                default:
+                    for (int i = 0, j = 0; i < 17; i++)
+                    {
+                        int id = indexs.IndexOf(i);
+                        if (j < count && id != -1)
+                        {
+                            symbols[i].Init(GameManager.instance.GetSymbol(i == 16, type, num));
+                            Tween.Run(symbols[i], symbols[i].StartAnimationDelay, j * 0.03f);
+                            indexs.RemoveAt(id);
+                            j++;
+                        }
+                        else
+                        {
+                            symbols[i].gameObject.SetActive(false);
+                        }
+                    }
+                    break;
             }
         }
     }
 
-    public void Return(Vector2 velocity)
+    public void Blink()
+    {
+        switch (type)
+        {
+            case CardType.Diamond:
+                for (int i = 0, j = 0; i < 17; i++)
+                {
+                    if (symbols[i].gameObject.activeSelf)
+                    {
+                        Tween.Run(symbols[i], symbols[i].SelectDiamondDelay, j * 0.03f);
+                        j++;
+                    }
+                }
+                break;
+            case CardType.Spade:
+                for (int i = 0, j = 0; i < 17; i++)
+                {
+                    if (symbols[i].gameObject.activeSelf)
+                    {
+                        Tween.Run(symbols[i], symbols[i].SelectSpadeDelay, j * 0.03f);
+                        j++;
+                    }
+                }
+                break;
+        }
+    }
+
+    public void Return(Vector2 velocity, Vector2 velvel)
     {
         returnPos = CardManager.instance.previewPivot.anchoredPosition;
         returnVel = velocity;
-        returnVelVel = Vector2.zero;
+        returnVelVel = velvel;
         state = ReturnState;
     }
 
     private Vector2 returnPos;
-    private Vector2 returnVel, returnVelVel;
+    public Vector2 returnVel, returnVelVel;
 
     private void ReturnState()
     {

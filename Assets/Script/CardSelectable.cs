@@ -10,7 +10,7 @@ using TMPro;
 using SeolMJ;
 
 [SelectionBase]
-public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler, IUpdateSelectedHandler
+public abstract class CardSelectable : UIBehaviour, ITweenable, IMoveHandler, IEventSystemHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler, IUpdateSelectedHandler
 {
 
     [Header("Reference")]
@@ -50,6 +50,9 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
     public static ColorBlock textColor;
     public static Vector4 scale;
     public static List<CardSelectable> cardSelectables = new(64);
+
+    public Tween.Action TweenAction { get => action; set => action = value; }
+    public Tween.Action action;
 
     protected override void Reset()
     {
@@ -103,6 +106,8 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         targetRect.anchoredPosition -= offset;
         offset = Vector2.zero;
         targetScale = scale.x;
+
+        action = null;
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -115,13 +120,15 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
         }
     }
 
-    void Update()
-    {
-        if (!isUpdating) return;
+    private float progressVel, scaleVel;
+    private Vector2 offsetVel;
+    private Color colorVel, textColorVel;
 
-        if (progress > 0.99f)
+    void Animate()
+    {
+        if (progress >= 1f)
         {
-            isUpdating = false;
+            action = null;
             progress = 1f;
             targetGraphic.color = targetColor;
             if (targetText) targetText.color = targetTextColor;
@@ -132,23 +139,22 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
                 targetRect.anchoredPosition += offset;
             }
             if (scaling) targetRect.localScale = Utils.ToVector3(targetScale);
+            return;
         }
 
-        float deltaSpeed = Time.unscaledDeltaTime * color.fadeDuration;
+        progress = Mathf.SmoothDamp(progress, 1f, ref progressVel, color.fadeDuration);
 
-        targetGraphic.color = Color.Lerp(targetGraphic.color, targetColor, deltaSpeed);
-        if (targetText) targetText.color = Color.Lerp(targetText.color, targetTextColor, deltaSpeed);
+        targetGraphic.color = Utils.SmoothDamp(targetGraphic.color, targetColor, ref colorVel, color.fadeDuration);
+        if (targetText) targetText.color = Utils.SmoothDamp(targetText.color, targetTextColor, ref textColorVel, color.fadeDuration);
 
         if (moving)
         {
             targetRect.anchoredPosition -= offset;
-            offset = Vector2.Lerp(offset, targetOffset, deltaSpeed * moveSpeed);
+            offset = Vector2.SmoothDamp(offset, targetOffset, ref offsetVel, color.fadeDuration * moveSpeed);
             targetRect.anchoredPosition += offset;
         }
 
-        if (scaling) targetRect.localScale = Utils.ToVector3(Mathf.Lerp(targetRect.localScale.x, targetScale, deltaSpeed * moveSpeed));
-
-        progress = Mathf.Lerp(progress, 1f, deltaSpeed);
+        if (scaling) targetRect.localScale = Utils.ToVector3(Mathf.SmoothDamp(targetRect.localScale.x, targetScale, ref scaleVel, color.fadeDuration));
     }
 
     // Private Methods
@@ -172,7 +178,7 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
             case ColorType.Pressed:
                 targetColor = color.pressedColor;
                 targetTextColor = textColor.pressedColor;
-                ApplyOffset(1f, 2f);
+                ApplyOffset(1f, 0.5f);
                 targetScale = scale.z;
                 break;
             case ColorType.Selected:
@@ -187,8 +193,9 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
             targetGraphic.color = targetColor;
             if (targetText) targetText.color = targetTextColor;
         }
-        progress = 0f;
         isUpdating = true;
+        progress = 0f;
+        Tween.Run(this, Animate);
     }
 
     public void ApplyOffset(float amount, float speed)
@@ -203,8 +210,6 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
             Direction.Right => new(amount, 0),
             _ => Vector2.zero
         };
-        progress = 0f;
-        isUpdating = true;
     }
 
     public void ApplyOffsetImmediately(float amount)
@@ -220,8 +225,6 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
             _ => Vector2.zero
         };
         targetRect.anchoredPosition += offset;
-        progress = 0f;
-        isUpdating = true;
     }
 
     // Events
@@ -505,6 +508,11 @@ public abstract class CardSelectable : UIBehaviour, IMoveHandler, IEventSystemHa
 
         dir = rect.rect.center + Vector2.Scale(rect.rect.size, dir * 0.5f);
         return dir;
+    }
+
+    public void OnTween(float progress)
+    {
+        
     }
 
     // Structs

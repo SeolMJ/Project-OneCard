@@ -23,8 +23,6 @@ public class CardMenu : MonoBehaviour
     [Header("Settings")]
     public AnimationCurve cardHeightCurve;
     public float delay = 0.2f;
-    public float speed = 150f;
-    public float damp = 0.07f;
 
     private Vector2 mousePos;
     private Vector2 velocity, velvel;
@@ -45,7 +43,7 @@ public class CardMenu : MonoBehaviour
             {
                 if (cards[i] == selected)
                 {
-                    selected.anchoredPosition = Utils.SpringDamp(selected.anchoredPosition, finish.anchoredPosition, ref velocity, ref velvel, speed, damp, Time.unscaledDeltaTime);
+                    selected.anchoredPosition = Utils.SpringDamp(selected.anchoredPosition, finish.anchoredPosition, ref velocity, ref velvel, 300f, 0.06f, Time.unscaledDeltaTime);
                     selected.localRotation = Quaternion.Lerp(selected.localRotation, Quaternion.identity, Time.unscaledDeltaTime * 10f);
                     continue;
                 }
@@ -64,6 +62,7 @@ public class CardMenu : MonoBehaviour
         {
             pressed = true;
             select.gameObject.SetActive(false);
+            velocity = Vector2.zero;
         }
 
         if (pressed && Input.GetMouseButtonUp(0))
@@ -90,8 +89,7 @@ public class CardMenu : MonoBehaviour
 
         if (pressed)
         {
-            Vector2 position = Vector2.Lerp(selected.anchoredPosition, mousePos, Time.unscaledDeltaTime * 10f);
-            velocity = (position - selected.anchoredPosition) / Time.unscaledDeltaTime;
+            Vector2 position = Utils.SpringDamp(selected.anchoredPosition, mousePos, ref velocity, ref velvel, 300f, 0.06f, Time.unscaledDeltaTime); ;
             selected.anchoredPosition = position;
             selected.localRotation = Quaternion.Lerp(selected.localRotation, Quaternion.identity, Time.unscaledDeltaTime * 10f);
             if (Vector2.Distance(selected.anchoredPosition, finish.anchoredPosition) <= 150f)
@@ -114,7 +112,7 @@ public class CardMenu : MonoBehaviour
         float halfWidth = width / 2f;
         float bottom = -canvas.sizeDelta.y / 2f;
         float deltaTime = Time.unscaledDeltaTime * 10f;
-        float mouseHeight = (Input.mousePosition.y / Screen.height * 4f - 0.25f) * (pressed ? 0.1f : 1f);
+        float mouseHeight = (Input.mousePosition.y / Screen.height * -3f + 2.1f) * (pressed ? 0.5f : 1f);
         float mul = 1f;
         float mousePosHalf = mousePos.y + 540f;
         if (count < 4 && count > 1) mul /= count switch
@@ -125,6 +123,7 @@ public class CardMenu : MonoBehaviour
         };
         float minDist = Mathf.Infinity;
         int closest = 0;
+        float timeZT = Time.time * 0.2f;
         for (int i = 0; i < count; i++)
         {
             if (pressed && cards[i] == selected) continue;
@@ -132,19 +131,24 @@ public class CardMenu : MonoBehaviour
             float pos = 200f + i * 425f - mousePos.x / canvasWidth * width;
             float offset = (pos - halfWidth - mousePos.x) / canvasWidth;
             float posX = Mathf.Abs(cards[i].anchoredPosition.x - mousePos.x);
-            float perlinPlusIndex = index * 10f + Time.unscaledTime * 0.2f;
-            float perlinMinusIndex = index * 10f - Time.unscaledTime * 0.2f;
+            float perlinPlusIndex = index * 10f + timeZT;
+            float perlinMinusIndex = index * 10f - timeZT;
             if (posX < minDist)
             {
                 minDist = posX;
                 closest = i;
             }
-            cards[i].anchoredPosition = Vector2.LerpUnclamped(cards[i].anchoredPosition
-                , Vector2.Lerp(new Vector2(960f * index, bottom + index * index * -240f)
-                , new Vector2(pos - halfWidth
-                , mousePosHalf * cardHeightCurve.Evaluate(mousePosHalf / 1080f) + (1 - Mathf.Abs(offset)) * 320f - 700f)
-                , mouseHeight) + new Vector2(Mathf.PerlinNoise(perlinPlusIndex, perlinMinusIndex) * 32f
-                , Mathf.PerlinNoise(perlinMinusIndex, perlinPlusIndex) * 32f)
+            cards[i].anchoredPosition = Vector2.LerpUnclamped
+                ( cards[i].anchoredPosition
+                , Vector2.Lerp
+                    ( new Vector2(960f * index, bottom + index * index * -240f)
+                    , new Vector2
+                        ( pos - halfWidth
+                        , mousePosHalf/* * cardHeightCurve.Evaluate(mousePosHalf / 1080f)*/ + (1 - Mathf.Abs(offset)) * 320f - 850f)
+                    , mouseHeight)
+                + new Vector2
+                    ( Mathf.PerlinNoise(perlinPlusIndex, perlinMinusIndex) * 32f
+                    , Mathf.PerlinNoise(perlinMinusIndex, perlinPlusIndex) * 32f)
                 , deltaTime);
             cards[i].localRotation = Quaternion.LerpUnclamped(cards[i].localRotation
                 , Quaternion.Euler(0, 0, Mathf.Lerp(index * -30f, offset * -10f, mouseHeight)), deltaTime);

@@ -1,6 +1,6 @@
 trackSelection = true
 fetchPreview = true
-wantsMore = false
+defaultFlags = 0
 keepOpen = false
 queryFolder = "Assets"
 onBoardingDoNotAskAgain = true
@@ -10,6 +10,12 @@ scopes = {
 	"last_search.7C5D90A9" = ""
 	"OpenInspectorPreview.7C5D90A9" = "0"
 	"currentGroup.7C5D90A9" = "all"
+	"last_search.8824D059" = ""
+	"OpenInspectorPreview.8824D059" = "0"
+	"currentGroup.8824D059" = "all"
+	"last_search.8C24D059" = "shortcut"
+	"OpenInspectorPreview.8C24D059" = "0"
+	"currentGroup.8C24D059" = "all"
 }
 providers = {
 	adb = {
@@ -57,8 +63,31 @@ providers = {
 		priority = 100
 		defaultAction = null
 	}
+	menu = {
+		active = true
+		priority = 80
+		defaultAction = null
+	}
+	settings = {
+		active = true
+		priority = 100
+		defaultAction = null
+	}
+	calculator = {
+		active = true
+		priority = 10
+		defaultAction = null
+	}
+	static_methods = {
+		active = true
+		priority = 85
+		defaultAction = null
+	}
+}
+objectSelectors = {
 }
 recentSearches = [
+	"sh"
 ]
 searchItemFavorites = [
 ]

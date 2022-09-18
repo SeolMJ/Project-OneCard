@@ -28,7 +28,7 @@ MonoBehaviour:
     m_SelectedColor: {r: 0.92156863, g: 0.92156863, b: 0.92156863, a: 1}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
-    m_FadeDuration: 10
+    m_FadeDuration: 0.08
   selectableTextColor:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 1}
     m_HighlightedColor: {r: 0.75686276, g: 0.22352941, b: 0.16862746, a: 1}

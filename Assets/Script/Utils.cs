@@ -172,6 +172,16 @@ namespace SeolMJ
         {
             current = Mathf.SmoothDamp(current, target, ref velocity, time);
         }
+
+        public static Color SmoothDamp(Color current, Color target, ref Color velocity, float time)
+        {
+            return new Color(
+                Mathf.SmoothDamp(current.r, target.r, ref velocity.r, time),
+                Mathf.SmoothDamp(current.g, target.g, ref velocity.g, time),
+                Mathf.SmoothDamp(current.b, target.b, ref velocity.b, time),
+                Mathf.SmoothDamp(current.a, target.a, ref velocity.a, time)
+                );
+        }
         #endregion
 
         #region Components

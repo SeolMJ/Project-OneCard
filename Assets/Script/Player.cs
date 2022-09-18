@@ -71,7 +71,7 @@ public class Player : Carder
     private int lazyCount = 0;
     private Coroutine initCardRoutine;
     private bool cardReady;
-    private Vector2 cardVel;
+    private Vector2 cardVel, cardVelVel;
 
     // Movement
     [HideInInspector] public Vector2 velocity, velocityVel;
@@ -319,10 +319,14 @@ public class Player : Carder
 
             if (Input.GetMouseButton(0)) // On Card Selected
             {
-                Vector2 final = Vector2.Lerp(cardPos, canvasMousePos, GameManager.deltaTime * cardManager.cardSpeed);
+                if (!selected)
+                {
+                    cardVel = Vector2.zero;
+                    cardVelVel = Vector2.zero;
+                    selectedCard.Blink();
+                }
 
-                if (!selected) cardVel = Vector2.zero;
-                else cardVel = (final - cardPos) / GameManager.deltaTime;
+                Vector2 final = Utils.SpringDamp(cardPos, canvasMousePos, ref cardVel, ref cardVelVel, 300f, 0.06f);
 
                 selected = true;
                 selectedCard.MoveTo(final);
@@ -405,7 +409,7 @@ public class Player : Carder
 
                             cards.Remove(selectedCard);
                             selectedCard.transform.SetParent(cardManager.previewParent);
-                            selectedCard.Return(cardVel);
+                            selectedCard.Return(cardVel, cardVelVel);
                             cardManager.NewCardStack(selectedCard);
                             selectedCard = null;
 
@@ -515,11 +519,12 @@ public class Player : Carder
         float halfWidth = width / 2f;
         float bottom = -cardManager.cardParent.sizeDelta.y / 2f;
         float deltaTime = GameManager.deltaTime * cardManager.cardSpeed;
+        float deltaSlice = 1f / GameManager.deltaTime;
         float mouseHeight = cardMode switch
         {
-            0 => (Input.mousePosition.y / Screen.height * 4f - 0.25f) * (selected ? 0.1f : 1f),
+            0 => (Input.mousePosition.y / Screen.height * -3f + 2.1f) * (selected ? 0.5f : 1f),
             1 => 0,
-            2 => Input.mousePosition.y / Screen.height * 4f - 0.25f,
+            2 => Input.mousePosition.y / Screen.height * -3f + 2.1f,
             _ => 0
         };
         int count = cards.Count;
@@ -533,28 +538,38 @@ public class Player : Carder
         };
         float minDist = Mathf.Infinity;
         int closest = 0;
+        float timeZT = Time.time * 0.2f;
+        Card cur;
         for (int i = 0; i < count; i++)
         {
             if (selected && cards[i] == selectedCard) continue;
+            cur = cards[i];
             float index = count == 1 ? 0f : ((float)i / (count - 1) - 0.5f) * mul;
             float pos = 200f + i * 425f - canvasMousePos.x / canvasWidth * width;
             float offset = (pos - halfWidth - canvasMousePos.x) / canvasWidth;
-            float posX = Mathf.Abs(cards[i].thisRect.anchoredPosition.x - canvasMousePos.x);
-            float perlinPlusIndex = index * 10f + Time.time * 0.2f;
-            float perlinMinusIndex = index * 10f - Time.time * 0.2f;
+            float posX = Mathf.Abs(cur.thisRect.anchoredPosition.x - canvasMousePos.x);
+            float perlinPlusIndex = index * 10f + timeZT;
+            float perlinMinusIndex = index * 10f - timeZT;
             if (posX < minDist)
             {
                 minDist = posX;
                 closest = i;
             }
-            cards[i].thisRect.anchoredPosition = Vector2.LerpUnclamped(cards[i].thisRect.anchoredPosition
-                , Vector2.Lerp(new Vector2(960f * index, bottom + index * index * -240f)
-                , new Vector2(pos - halfWidth
-                , mousePosHalf * cardHeightCurve.Evaluate(mousePosHalf / 1080f) + (1 - Mathf.Abs(offset)) * 320f - 700f)
-                , mouseHeight) + new Vector2(Mathf.PerlinNoise(perlinPlusIndex, perlinMinusIndex) * 32f
-                , Mathf.PerlinNoise(perlinMinusIndex, perlinPlusIndex) * 32f)
+            Vector2 newPos = Vector2.LerpUnclamped
+                ( cur.thisRect.anchoredPosition
+                , Vector2.Lerp
+                    ( new Vector2(960f * index, bottom + index * index * -240f)
+                    , new Vector2
+                        ( pos - halfWidth
+                        , mousePosHalf/* * cardHeightCurve.Evaluate(mousePosHalf / 1080f)*/ + (1 - Mathf.Abs(offset)) * 320f - 850f)
+                    , mouseHeight)
+                + new Vector2
+                    ( Mathf.PerlinNoise(perlinPlusIndex, perlinMinusIndex) * 32f
+                    , Mathf.PerlinNoise(perlinMinusIndex, perlinPlusIndex) * 32f)
                 , deltaTime);
-            cards[i].transform.localRotation = Quaternion.LerpUnclamped(cards[i].transform.localRotation
+            cur.returnVel = (newPos - cur.thisRect.anchoredPosition) * deltaSlice;
+            cur.thisRect.anchoredPosition = newPos;
+            cur.transform.localRotation = Quaternion.LerpUnclamped(cur.transform.localRotation
                 , Quaternion.Euler(0, 0, Mathf.Lerp(index * -30f, offset * -10f, mouseHeight)), deltaTime);
         }
         if (cardMode != 0 && cardMode != 2)
