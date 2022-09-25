@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,12 +10,16 @@ public class Tween : MonoBehaviour
 
     public delegate void Action();
     private static List<ITweenable> updates;
-    private static int count;
+    public static int count;
 
     [Header("Graphs")]
     public AnimationCurve sticky;
     public AnimationCurve sa_Diamond;
     public AnimationCurve sa_Spade;
+    public AnimationCurve pa_Pop;
+
+    [Header("Debug")]
+    public int currentCount;
 
     void Awake()
     {
@@ -24,6 +29,9 @@ public class Tween : MonoBehaviour
 
     void Update()
     {
+#if UNITY_EDITOR
+        currentCount = count;
+#endif
         for (int i = 0; i < count; ++i)
         {
             if (updates[i] == null)
@@ -42,6 +50,13 @@ public class Tween : MonoBehaviour
                 continue;
             }
             action.Invoke();
+            if (action == null)
+            {
+                count--;
+                updates.RemoveAt(i);
+                i--;
+                continue;
+            }
         }
     }
 

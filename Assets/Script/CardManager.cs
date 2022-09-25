@@ -7,7 +7,7 @@ using TMPro;
 using SeolMJ;
 using static SeolMJ.CardUtils;
 
-public class CardManager : MonoBehaviour
+public class CardManager : MonoBehaviour, ITweenable
 {
 
     public static CardManager instance;
@@ -58,7 +58,17 @@ public class CardManager : MonoBehaviour
     public Stack<Image> inactiveSymbols = new(32);
 
     private float angleOffset;
-    private bool readying;
+
+    #region Tween
+    public Tween.Action TweenAction { get => action; set => action = value; }
+    private Tween.Action action;
+    private float progress;
+
+    public void OnTween(float progress)
+    {
+        this.progress = 0f;
+    }
+    #endregion
 
     void Awake()
     {
@@ -73,7 +83,6 @@ public class CardManager : MonoBehaviour
             Log("Game Resuming", 1);
             cardParent.gameObject.SetActive(true);
             cardSystemGroup.gameObject.SetActive(true);
-            yield return null;
             lastCard = data.nowCard;
             turn = data.nowTurn;
             stack = (uint)data.nowStack;
@@ -117,7 +126,7 @@ public class CardManager : MonoBehaviour
 
     void OnDisable()
     {
-        readying = false;
+        
     }
 
     void Update()
@@ -130,7 +139,7 @@ public class CardManager : MonoBehaviour
 
     public void Resume()
     {
-        if (cardFadeCoroutine != null) StopCoroutine(cardFadeCoroutine);
+        action = null;
 
         cardParent.gameObject.SetActive(true);
         cardSystemGroup.gameObject.SetActive(true);
@@ -152,10 +161,12 @@ public class CardManager : MonoBehaviour
         opposite = false;
         lastCard = RandomCard(true);
 
-        if (previewCard) Destroy(previewCard.gameObject);
+        if (previewCard) ReturnCard(previewCard);
+        previewCard = null;
 
-        if (cardFadeCoroutine != null) StopCoroutine(cardFadeCoroutine);
-        cardFadeCoroutine = StartCoroutine(DoPlay());
+        cardParent.gameObject.SetActive(true);
+        cardSystemGroup.gameObject.SetActive(true);
+        Tween.Run(this, DoPlay);
 
         playing = true;
 
@@ -167,36 +178,16 @@ public class CardManager : MonoBehaviour
         Log("Game Started");
     }
 
-    IEnumerator DoPlay()
+    void DoPlay()
     {
-        cardGroup.alpha = 0;
-        cardParent.gameObject.SetActive(true);
-        cardSystemGroup.gameObject.SetActive(true);
-        while (cardGroup.alpha < 0.99f)
+        if (progress < 1f)
         {
-            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 1, GameManager.deltaTime * 10f);
+            progress += GameManager.deltaTime;
+            cardGroup.alpha = Mathf.Lerp(0f, 1f, Tween.instance.sticky.Evaluate(progress));
             cardSystemGroup.alpha = cardGroup.alpha;
-            yield return null;
+            return;
         }
-        cardGroup.alpha = 1;
-        cardSystemGroup.alpha = 1;
-    }
-
-    public void Ready(Action action)
-    {
-        if (readying) return;
-        playing = true;
-        StartCoroutine(DoReady(action));
-    }
-
-    IEnumerator DoReady(Action action)
-    {
-        using var _ = new Busy(4);
-        readying = true;
-        yield return null;
-        yield return null;
-        action.Invoke();
-        readying = false;
+        action = null;
     }
 
     public bool Push(CardInfo card, bool lazy = false, bool last = false)
@@ -306,10 +297,10 @@ public class CardManager : MonoBehaviour
         ReLayout();
     }
 
-    private Coroutine cardFadeCoroutine;
-
     public void Stop()
     {
+        if (!playing) return;
+
         if (carders.Count > 0) for (int i = carders.Count - 1; i >= 0; i--) Destroy(carderRects[i].gameObject);
         carders.Clear();
 
@@ -317,10 +308,10 @@ public class CardManager : MonoBehaviour
         carderRects.Clear();
 
         if (previewCard) previewCard.Kill();
+        previewCard = null;
         Player.instance.UpdateStatus(false);
 
-        if (cardFadeCoroutine != null) StopCoroutine(cardFadeCoroutine);
-        cardFadeCoroutine = StartCoroutine(DoStop());
+        Tween.Run(this, DoStop);
 
         PartyField.instance.Close();
 
@@ -329,20 +320,18 @@ public class CardManager : MonoBehaviour
         Log("Game Ended");
     }
 
-    IEnumerator DoStop()
+    void DoStop()
     {
-        cardGroup.alpha = 1;
-        while (cardGroup.alpha > 0.01f)
+        if (progress < 1f)
         {
-            cardGroup.alpha = Mathf.Lerp(cardGroup.alpha, 0, GameManager.deltaTime * 10f);
+            progress += GameManager.deltaTime;//
+            cardGroup.alpha = Mathf.Lerp(1f, 0f, Tween.instance.sticky.Evaluate(progress));
             cardSystemGroup.alpha = cardGroup.alpha;
-            yield return null;
+            return;
         }
-        cardGroup.alpha = 0;
-        cardSystemGroup.alpha = 0;
         cardParent.gameObject.SetActive(false);
         cardSystemGroup.gameObject.SetActive(false);
-        if (previewCard) Destroy(previewCard.gameObject);
+        action = null;
     }
 
     // Cards

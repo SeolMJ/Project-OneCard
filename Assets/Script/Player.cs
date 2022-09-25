@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using Cinemachine;
 
 using SeolMJ;
 using static SeolMJ.Utils;
@@ -69,7 +68,6 @@ public class Player : Carder
     private bool lazySelected;
     private int lazyturn;
     private int lazyCount = 0;
-    private Coroutine initCardRoutine;
     private bool cardReady;
     private Vector2 cardVel, cardVelVel;
 
@@ -88,16 +86,16 @@ public class Player : Carder
     void Awake()
     {
         instance = this;
-    }
 
-    void Start()
-    {
         if (!G)
         {
             if (!SceneLoader.Reserved && !SceneLoader.Running) SceneLoader.Return();
             return;
         }
+    }
 
+    void Start()
+    {
         // Load
         transform.position = G.data.position.Get();
         //rigidbody.velocity = G.data.velocity.Get();
@@ -168,18 +166,16 @@ public class Player : Carder
         cards.Clear();
     }
 
-    IEnumerator InitCard()
+    public void InitCard()
     {
-        List<CardInfo> newCards = GameManager.GetRandomCards();
         for (int i = 0; i < GameManager.Resource.defaultCardCount; i++)
         {
-            AddCard(newCards[i]);
-            yield return new GameManager.WaitForScaledSeconds().Wait(0.05f);
+            AddCard(RandomCard(false));
         }
         cardManager.UpdateCarder(this, cards.Count);
     }
 
-    public void InitCardForce()
+    public void InitCardData()
     {
         for (int i = 0; i < G.data.nowCards.Count; i++)
         {
@@ -217,6 +213,11 @@ public class Player : Carder
                 if (!carding) Party(2);
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            C.Stop();
+        }
         
         if (Input.GetKeyDown(KeyCode.F))
         {
@@ -235,15 +236,29 @@ public class Player : Carder
             if (fromData) cardManager.Resume();
             else cardManager.Play();
 
-            if (initCardRoutine != null) StopCoroutine(initCardRoutine);
+            if (fromData) InitCardData();
+            else InitCard();
 
-            if (fromData) InitCardForce();
-            else initCardRoutine = StartCoroutine(InitCard());
+            //ProvideCards();
         }
         else
         {
-            if (initCardRoutine != null) StopCoroutine(initCardRoutine);
             ClearCard();
+        }
+    }
+
+    public void ProvideCards()
+    {
+        for (int i = 0; i < cards.Count; i++)
+        {
+            if (cards[i] != null) continue;
+            Log("Missing Card Detected!!");
+            CardInfo card = RandomCard(false);
+            Card newCard = cardManager.GetCard(card, cardManager.cardParent);
+            newCard.Init(card);
+            newCard.MoveTo(Vector2.down * (cardManager.cardParent.sizeDelta.y / 2f + 440f));
+            cards[i] = newCard;
+            cardHilight.SetAsLastSibling();
         }
     }
 
@@ -514,6 +529,7 @@ public class Player : Carder
             selectedCard = null;
             return;
         }
+        //ProvideCards();
         float canvasWidth = cardManager.cardParent.sizeDelta.x;
         float width = cards.Count * 400f + (cards.Count - 1) * 25f;
         float halfWidth = width / 2f;

@@ -2,33 +2,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PopAnimator : MonoBehaviour
+public class PopAnimator : MonoBehaviour, ITweenable
 {
 
     public AnimationCurve curve;
     public float speed;
 
-    private new Coroutine animation;
+    #region Tween
+    public Tween.Action TweenAction { get => action; set => action = value; }
+    private Tween.Action action;
+    private float progress;
+
+    public void OnTween(float progress)
+    {
+        this.progress = 0f;
+    }
+    #endregion
 
     public void Animate()
     {
         gameObject.SetActive(true);
-        if (animation != null) StopCoroutine(animation);
-        animation = StartCoroutine(DoAnimate());
+        Tween.Run(this, DoAnimate);
     }
 
-    IEnumerator DoAnimate()
+    void DoAnimate()
     {
-        float progress = 0f;
-        while (progress < 1f)
+        if (progress < 1f)
         {
-            transform.localScale = Vector3.one * curve.Evaluate(progress);
             progress += GameManager.deltaTime * speed;
-            yield return null;
+            float eval = Tween.instance.pa_Pop.Evaluate(progress);
+            transform.localScale = new Vector3(eval, eval, 1f);
+            return;
         }
-        transform.localScale = Vector3.one * curve.Evaluate(1);
-        animation = null;
         gameObject.SetActive(false);
+        action = null;
     }
 
 }

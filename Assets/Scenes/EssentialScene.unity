@@ -10747,8 +10747,6 @@ MonoBehaviour:
   carding: 0
   velocity: {x: 0, y: 0}
   velocityVel: {x: 0, y: 0}
-  MSpeed: 300
-  MDamp: 0.07
 --- !u!4 &533981325
 Transform:
   m_ObjectHideFlags: 0
@@ -34502,8 +34500,6 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   delay: 0.2
-  speed: 150
-  damp: 0.07
 --- !u!1 &1889757029
 GameObject:
   m_ObjectHideFlags: 0

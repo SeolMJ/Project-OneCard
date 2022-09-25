@@ -22,8 +22,6 @@ public class Card : MonoBehaviour
     [HideInInspector] public bool picked;
     [HideInInspector] public bool done;
 
-    private bool active;
-
     #region StateMachine
 
     public delegate void State();
@@ -41,15 +39,6 @@ public class Card : MonoBehaviour
         state?.Invoke();
     }
 
-    void OnDisable()
-    {
-        if (active)
-        {
-            active = false;
-            CardManager.instance.ReturnCard(this);
-        }
-    }
-
     public void Init(CardInfo card, CardInitMode mode = CardInitMode.Normal)
     {
         type = card.type;
@@ -57,7 +46,6 @@ public class Card : MonoBehaviour
         image.sprite = defaultImage;
         group.alpha = 1f;
         transform.localScale = Vector3.one;
-        active = true;
         state = null;
         transform.localRotation = Quaternion.identity;
         SelectSymbol(mode);
@@ -306,7 +294,6 @@ public class Card : MonoBehaviour
         if (group.alpha <= 0.01f)
         {
             state = null;
-            active = false;
             CardManager.instance.ReturnCard(this);
         }
     }
@@ -326,7 +313,6 @@ public class Card : MonoBehaviour
         if (group.alpha <= 0.01f)
         {
             state = null;
-            active = false;
             CardManager.instance.ReturnCard(this);
         }
     }

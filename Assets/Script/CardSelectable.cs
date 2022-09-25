@@ -36,7 +36,6 @@ public abstract class CardSelectable : UIBehaviour, ITweenable, IMoveHandler, IE
     public bool isPointerInside, isPointerDown, isSelected;
 
     // Private Variables
-    private bool isUpdating;
     private Color targetColor;
     private Color targetTextColor;
     private Vector2 targetOffset;
@@ -78,18 +77,23 @@ public abstract class CardSelectable : UIBehaviour, ITweenable, IMoveHandler, IE
     protected override void OnEnable()
     {
         cardSelectables.Add(this);
-
-        targetColor = color.normalColor;
-        targetTextColor = textColor.normalColor;
+        
         if (GameManager.instance.eventSystem && GameManager.instance.eventSystem.currentSelectedGameObject == gameObject && selectable)
         {
             isSelected = true;
             targetColor = color.selectedColor;
             targetTextColor = color.selectedColor;
         }
+        else
+        {
+            targetColor = color.normalColor;
+            targetTextColor = textColor.normalColor;
+        }
+
+        targetGraphic.color = targetColor;
+        if (targetText) targetText.color = targetTextColor;
 
         isPointerDown = false;
-        isUpdating = true;
 
         targetScale = scale.x;
     }
@@ -193,7 +197,6 @@ public abstract class CardSelectable : UIBehaviour, ITweenable, IMoveHandler, IE
             targetGraphic.color = targetColor;
             if (targetText) targetText.color = targetTextColor;
         }
-        isUpdating = true;
         progress = 0f;
         Tween.Run(this, Animate);
     }
